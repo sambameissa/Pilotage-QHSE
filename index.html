@@ -185,7 +185,7 @@ section{margin-top:34px}
 .chip[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
 :root[data-theme="dark"] .chip[aria-pressed="true"], :root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#08201F}
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .chip[aria-pressed="true"]{color:#fff}}
-input[type="search"], select, input[type="number"]{
+input[type="search"], select, input[type="number"], td input[type="text"]{
   font:inherit; font-size:13px; color:var(--ink); background:var(--surface);
   border:1px solid var(--line-strong); border-radius:8px; padding:5px 9px;
 }
@@ -250,7 +250,7 @@ td.val input{width:84px; text-align:right}
 .fil-sum{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px}
 .fil-actions{display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap}
 .fil-actions .hint{font-size:12px; color:var(--ink-3)}
-td.fil-nom input{width:230px; text-align:left}
+td.fil-nom input{width:200px; text-align:left}
 td.num-in input{width:70px; text-align:right}
 td.niv select{width:142px}
 .taux{font-weight:700; font-variant-numeric:tabular-nums}
@@ -325,6 +325,99 @@ footer p{margin:0 0 6px; max-width:78ch}
   footer{font-size:8.5pt}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+
+/* ---------- Refonte : en-tête, onglets, plan compact ---------- */
+.top-in{align-items:center; padding-block:14px 10px}
+.brand{flex-direction:row; align-items:center; gap:12px}
+.logo{display:grid; place-items:center; width:40px; height:40px; border-radius:10px; background:var(--accent); color:#fff; flex:none}
+h1{font-size:20px}
+.eyebrow{letter-spacing:.12em; margin-bottom:1px}
+.brand .sub{font-size:12.5px; color:var(--ink-3)}
+.statebar{gap:6px}
+.sep{width:1px; height:22px; background:var(--line-strong); margin-inline:4px}
+button.btn.ghost{border-color:transparent; background:transparent; color:var(--ink-2)}
+button.btn.ghost:hover{background:var(--surface-2); color:var(--accent); border-color:var(--line)}
+button.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+button.btn.primary:hover{background:var(--accent-2); color:#fff}
+.tabs{display:flex; gap:2px; overflow-x:auto; scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{
+  font:inherit; font-size:13.5px; font-weight:600; color:var(--ink-3); background:none; border:0;
+  border-bottom:2px solid transparent; padding:9px 14px 10px; cursor:pointer; white-space:nowrap;
+}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--accent); border-bottom-color:var(--accent)}
+.tabs button:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+.tab-panel{display:none; padding-bottom:8px}
+.tab-panel.actif{display:block}
+section{margin-top:28px}
+.grid-2{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:24px; align-items:start}
+.axe-row{grid-template-columns:minmax(0,1fr) 140px 84px; padding:10px 14px}
+.legend{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto}
+
+/* Points d'attention */
+.att{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+.att h3{font-size:11px; font-family:"IBM Plex Mono",monospace; font-weight:500; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-3); padding:10px 14px 8px; background:var(--surface-2); border-bottom:1px solid var(--line); margin:0}
+.att ul{list-style:none; margin:0; padding:0}
+.att li{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; padding:9px 14px; border-bottom:1px solid var(--line); font-size:13px}
+.att li:last-child{border-bottom:0}
+.att li .t{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.att li .t .code{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--accent); font-weight:500; margin-right:6px}
+.att li .v{font-size:12px; color:var(--ink-3); white-space:nowrap; font-variant-numeric:tabular-nums}
+.att li .v.crit{color:var(--crit); font-weight:600}
+.att .vide{padding:12px 14px; font-size:13px; color:var(--ink-3)}
+.att + .att{margin-top:12px}
+
+/* Plan compact, détail dépliable */
+.plan{gap:6px}
+.act{grid-template-columns:minmax(0,1fr) auto; gap:0 14px; padding:0; align-items:center}
+.act-main{
+  all:unset; box-sizing:border-box; cursor:pointer; display:grid; grid-template-columns:62px minmax(0,1fr) 16px;
+  gap:2px 10px; align-items:center; padding:11px 0 11px 14px; min-width:0;
+}
+.act-main:focus-visible{outline:2px solid var(--accent); outline-offset:-2px; border-radius:var(--radius)}
+.act-main .code{grid-row:1 / span 2}
+.act-main .titre{font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.act-main .meta{grid-column:2; font-size:12px; color:var(--ink-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.act-main .chev{grid-column:3; grid-row:1 / span 2; color:var(--ink-3); transition:transform .15s}
+.act.ouvert .chev{transform:rotate(90deg)}
+.act .ctrl{flex-direction:row; align-items:center; gap:8px; padding:8px 14px 8px 0}
+.act .ctrl select{width:128px}
+.act .badge{align-self:center}
+.act-det{display:none; grid-column:1 / -1; padding:2px 14px 14px 86px; border-top:1px dashed var(--line)}
+.act.ouvert .act-det{display:block}
+.act-det .obj{margin:10px 0}
+.act-det .maj{text-align:left; margin-top:8px}
+
+footer{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:40px 0 24px}
+
+@media (max-width:860px){
+  .grid-2{grid-template-columns:1fr}
+  .act{grid-template-columns:1fr}
+  .act-main{padding-right:14px}
+  .act-main .titre, .act-main .meta{white-space:normal}
+  .axe-row{grid-template-columns:1fr; gap:7px}
+  .act .ctrl{padding:0 14px 10px 86px; flex-wrap:wrap}
+  .act-det{padding-left:14px}
+  .statebar{width:100%}
+  .sep{display:none}
+}
+@media (max-width:430px){
+  .kpis{grid-template-columns:repeat(2,1fr); gap:10px}
+  .kpi{padding:12px}
+  .kpi .val{font-size:24px}
+  .act-main{grid-template-columns:52px minmax(0,1fr) 16px}
+  .act .ctrl{padding-left:14px}
+}
+@media print{
+  .tabs, .sep, .logo{display:none !important}
+  .tab-panel{display:block !important}
+  .act-det{display:block !important; padding-left:14px}
+  .act .chev{display:none}
+  .grid-2{grid-template-columns:1fr 1fr}
+  .tab-panel[data-panel="plan"], .tab-panel[data-panel="filieres"], .tab-panel[data-panel="indicateurs"], .tab-panel[data-panel="referentiel"]{break-before:page}
+}
 </style>
 
 <script>
@@ -346,125 +439,147 @@ window.QHSE_CONFIG = {
 <header class="top">
   <div class="wrap top-in">
     <div class="brand">
-      <div class="eyebrow">Cellule QHSE · CFPC Maurice Delafosse · Version en ligne</div>
-      <h1>Pilotage QHSE &amp; animation de la qualité</h1>
-      <div class="sub">Année scolaire 2026-2027 · dispositif aligné sur ISO 21001 (management des organismes d'éducation/formation)</div>
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+      </span>
+      <div>
+        <div class="eyebrow">CFPC Maurice Delafosse</div>
+        <h1>Pilotage QHSE</h1>
+        <div class="sub">Année 2026-2027 · Référentiel ISO 21001</div>
+      </div>
     </div>
     <div class="statebar">
       <span class="pill" id="etatSync"><span class="dot"></span><span id="etatSyncTxt">Chargement…</span></span>
       <form id="authForm" class="auth" hidden>
-        <input type="email" id="authEmail" placeholder="votre adresse e-mail" required autocomplete="email" aria-label="Adresse e-mail">
-        <button class="btn" type="submit" id="authBtn">Recevoir le lien de connexion</button>
+        <input type="email" id="authEmail" placeholder="Adresse e-mail" required autocomplete="email" aria-label="Adresse e-mail">
+        <button class="btn primary" type="submit" id="authBtn">Recevoir le lien</button>
       </form>
       <span class="who" id="authUser" hidden></span>
       <button class="btn" id="btnGestion" hidden>Gérer la cellule</button>
-      <button class="btn" id="btnLogout" hidden>Se déconnecter</button>
-      <button class="btn" id="btnCsv">Exporter le suivi (CSV)</button>
-      <button class="btn" id="btnDemo">Mode démonstration</button>
-      <button class="btn" id="btnPrint">Imprimer</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button class="btn ghost" id="btnCsv" title="Exporter le suivi au format CSV">Exporter</button>
+      <button class="btn ghost" id="btnPrint">Imprimer</button>
+      <button class="btn ghost" id="btnDemo" title="Afficher des données fictives, sans rien enregistrer">Démonstration</button>
+      <button class="btn ghost" id="btnLogout" hidden>Déconnexion</button>
     </div>
   </div>
+  <nav class="wrap tabs" role="tablist" aria-label="Sections du tableau de bord">
+    <button role="tab" data-onglet="synthese">Synthèse</button>
+    <button role="tab" data-onglet="plan">Plan d'animations</button>
+    <button role="tab" data-onglet="filieres">Résultats par filière</button>
+    <button role="tab" data-onglet="indicateurs">Indicateurs</button>
+    <button role="tab" data-onglet="referentiel">Référentiel</button>
+  </nav>
 </header>
 
 <div class="demo-bar" id="demoBar" hidden>
   <div class="wrap demo-in">
-    <span><b>Mode démonstration</b> — chiffres fictifs, photographie simulée au 15 janvier 2027. Rien n'est enregistré, et aucun membre de la cellule ne voit ces valeurs.</span>
-    <button class="btn" id="btnDemoOff">Quitter la démonstration</button>
+    <span><b>Démonstration</b> · données fictives au 15 janvier 2027, non enregistrées</span>
+    <button class="btn" id="btnDemoOff">Quitter</button>
   </div>
 </div>
 
 <main class="wrap">
   <div id="accesZone" hidden></div>
 
-  <div class="kpis" id="kpis"></div>
+  <div class="tab-panel" data-panel="synthese">
+    <div class="kpis" id="kpis"></div>
 
-  <div class="cal">
-    <div class="cal-set">
-      <label for="dateDem"><b>Démarrage du dispositif</b></label>
-      <input type="date" id="dateDem" value="2026-10-15" aria-label="Date de démarrage du dispositif">
-      <span class="cal-print" id="calPrint"></span>
-      <span class="hint" id="calHint"></span>
+    <div class="cal">
+      <div class="cal-set">
+        <label for="dateDem">Démarrage du dispositif</label>
+        <input type="date" id="dateDem" value="2026-10-15" aria-label="Date de démarrage du dispositif">
+        <span class="cal-print" id="calPrint"></span>
+        <span class="hint" id="calHint"></span>
+      </div>
+      <div class="cal-per" id="calPer"></div>
     </div>
-    <div class="cal-per" id="calPer"></div>
+
+    <div class="grid-2">
+      <section>
+        <div class="sec-head"><h2>Avancement par axe</h2></div>
+        <div class="axes" id="axes"></div>
+      </section>
+      <section>
+        <div class="sec-head"><h2>Points d'attention</h2></div>
+        <div id="attention"></div>
+      </section>
+    </div>
   </div>
 
-  <section>
-    <div class="sec-head">
-      <h2>Avancement du plan par axe</h2>
-      <div class="note">Part des activités marquées « réalisé »</div>
-    </div>
-    <div class="axes" id="axes"></div>
-  </section>
-
-  <section>
-    <div class="sec-head">
-      <h2>Plan d'animations 2026-2027</h2>
-      <div class="note" id="planCount"></div>
-    </div>
-    <div class="filters">
-      <div class="fgroup" id="fAxes"><span class="glab">Axe</span></div>
-      <div class="fgroup" id="fPer"><span class="glab">Période</span></div>
-      <div class="fgroup">
-        <span class="glab">Statut</span>
-        <select id="fStatut" aria-label="Filtrer par statut">
-          <option value="">Tous</option>
-          <option value="a_lancer">À lancer</option>
-          <option value="en_cours">En cours</option>
-          <option value="realise">Réalisé</option>
-          <option value="reporte">Reporté</option>
-        </select>
+  <div class="tab-panel" data-panel="plan">
+    <section>
+      <div class="sec-head">
+        <h2>Plan d'animations 2026-2027</h2>
+        <div class="note" id="planCount"></div>
       </div>
-      <input type="search" id="fTexte" placeholder="Rechercher une activité, un pilote…" aria-label="Rechercher">
-    </div>
-    <div class="plan" id="plan"></div>
-  </section>
+      <div class="filters">
+        <div class="fgroup" id="fAxes"><span class="glab">Axe</span></div>
+        <div class="fgroup" id="fPer"><span class="glab">Période</span></div>
+        <div class="fgroup">
+          <span class="glab">Statut</span>
+          <select id="fStatut" aria-label="Filtrer par statut">
+            <option value="">Tous</option>
+            <option value="a_lancer">À lancer</option>
+            <option value="en_cours">En cours</option>
+            <option value="realise">Réalisé</option>
+            <option value="reporte">Reporté</option>
+          </select>
+        </div>
+        <input type="search" id="fTexte" placeholder="Rechercher" aria-label="Rechercher une activité ou un pilote">
+      </div>
+      <div class="plan" id="plan"></div>
+    </section>
+  </div>
 
-  <section>
-    <div class="sec-head">
-      <h2>Résultats par filière</h2>
-      <div class="note">Offre de formation 2026-2027 d'après la plaquette du centre · CAP, BT, BTS et BTS APC</div>
-    </div>
-    <div class="fil-sum" id="filSum"></div>
-    <div class="tbl-scroll" id="filTable"></div>
-    <div class="fil-actions">
-      <button class="btn" id="btnAddFil">Ajouter une filière</button>
-      <span class="hint">Présentés = candidats de l'année terminale. Pour comparer cours du jour et cours du soir, dédoublez la ligne et choisissez le régime de chacune.</span>
-    </div>
-    <div class="bars" id="filBars"></div>
-    <div class="sec-head" style="margin-top:26px">
-      <h3 style="font-size:13px; font-weight:700">Insertion des sortants à six mois — cohorte précédente</h3>
-    </div>
-    <div class="tbl-scroll" id="insTable"></div>
-  </section>
+  <div class="tab-panel" data-panel="filieres">
+    <section>
+      <div class="sec-head">
+        <h2>Résultats par filière</h2>
+        <div class="note">CAP · BT · BTS · BTS APC</div>
+      </div>
+      <div class="fil-sum" id="filSum"></div>
+      <div class="tbl-scroll" id="filTable"></div>
+      <div class="fil-actions">
+        <button class="btn" id="btnAddFil">Ajouter une filière</button>
+        <span class="hint">Présentés : candidats de l'année terminale</span>
+      </div>
+      <div class="bars" id="filBars"></div>
+    </section>
+    <section>
+      <div class="sec-head"><h2>Insertion à six mois · cohorte précédente</h2></div>
+      <div class="tbl-scroll" id="insTable"></div>
+    </section>
+  </div>
 
-  <section>
-    <div class="sec-head">
-      <h2>Matrice des indicateurs</h2>
-      <div class="note">Saisissez le dernier relevé : l'écart à la cible se calcule seul</div>
-    </div>
-    <div id="indicateurs"></div>
-  </section>
+  <div class="tab-panel" data-panel="indicateurs">
+    <section>
+      <div class="sec-head">
+        <h2>Matrice des indicateurs</h2>
+        <div class="legend">
+          <span class="etat ok">Cible atteinte</span>
+          <span class="etat warn">Écart &lt; 10 %</span>
+          <span class="etat crit">Écart ≥ 10 %</span>
+        </div>
+      </div>
+      <div id="indicateurs"></div>
+    </section>
+  </div>
 
-  <section>
-    <div class="sec-head"><h2>Alignement ISO 21001</h2></div>
-    <div class="rule"></div>
-    <div class="cards" id="iso"></div>
-  </section>
-
-  <section>
-    <div class="sec-head"><h2>Gouvernance et rituels de la cellule</h2></div>
-    <div class="rule"></div>
-    <div class="cards" id="gouv"></div>
-  </section>
+  <div class="tab-panel" data-panel="referentiel">
+    <section>
+      <div class="sec-head"><h2>Alignement ISO 21001</h2></div>
+      <div class="cards" id="iso"></div>
+    </section>
+    <section>
+      <div class="sec-head"><h2>Gouvernance de la cellule</h2></div>
+      <div class="cards" id="gouv"></div>
+    </section>
+  </div>
 
   <footer>
-    <p><b>Version en ligne.</b> Les saisies sont enregistrées dans une base partagée et apparaissent en direct chez tous les membres connectés. L'accès est réservé aux adresses e-mail inscrites par le responsable qualité : on se connecte en recevant un lien par e-mail, sans mot de passe. Les membres « éditeurs » peuvent saisir ; les membres « lecteurs » (direction, tutelle) consultent seulement. Chaque modification est horodatée et attribuée à son auteur. Le bouton d'export produit un fichier CSV lisible dans Excel, à archiver comme preuve à chaque revue de direction.</p>
-    <p><b>Mode d'emploi.</b> Le tableau de bord est livré sans données de performance : les statuts et les relevés sont à saisir par la cellule. Chaque saisie est enregistrée dès qu'on quitte le champ et visible par les autres membres connectés ; le bandeau en haut indique si l'enregistrement est partagé, en consultation seule, ou en échec.</p>
-    <p><b>Mode démonstration.</b> Le bouton du bandeau supérieur remplit la page de chiffres fictifs, comme si l'on était au 15 janvier 2027 : statuts, retards, indicateurs et résultats par filière. Rien n'est enregistré, aucun autre membre ne voit ces valeurs, et « Quitter la démonstration » rend la page à son état réel. C'est le mode à utiliser pour présenter l'outil en séance avant de le partager.</p>
-    <p><b>Journées mondiales.</b> Onze dates internationales sont adossées au plan, chacune portée par un service et assortie d'un livrable. Elles ne s'ajoutent pas au travail de la cellule : elles lui donnent un calendrier et un prétexte public. La journée mondiale de la qualité du 12 novembre et celle de la sécurité et de la santé au travail du 28 avril sont les deux temps forts de l'année ; les autres se préparent en une heure de réunion.</p>
-    <p><b>Suivi par filière.</b> La liste reprend l'offre de formation de la plaquette du centre : CAP dactylographie et aide-comptable, BT bureautique et comptabilité, BTS bureautique, comptabilité, transport logistique, commerce international et AGE, BTS APC transit et GCAL. Chaque ligne peut être renommée, dédoublée par régime de cours ou retirée. Le taux de réussite, le taux d'abandon et le taux d'insertion se calculent à partir des effectifs saisis, et trois indicateurs de la matrice — réussite aux examens, assiduité, insertion à six mois — en découlent directement au lieu d'être saisis à la main.</p>
-    <p><b>Date de démarrage.</b> Le dispositif ne commence qu'à l'approbation de la direction : la date portée en haut de page fixe ce départ, et les cinq périodes — lancement de six semaines, trois trimestres, bilan — se recalculent à partir d'elle. Si l'approbation glisse, changez la date : toutes les échéances suivent, ainsi que les liserés de retard. Seules les journées mondiales gardent leur date propre, puisqu'elles ne se déplacent pas ; celles qui tombent avant le démarrage sont signalées comme telles et ne comptent pas comme des retards.</p>
-    <p><b>Repères de calcul.</b> Une activité est signalée « en retard » lorsque son échéance est dépassée et que son statut n'est pas « réalisé ». Un indicateur est vert s'il atteint la cible, orange s'il s'en écarte de moins de 10 %, rouge au-delà. Les cibles proposées sont des points de départ : elles doivent être arbitrées en revue de direction au regard des résultats de l'année précédente.</p>
+    <span>CFPC Maurice Delafosse · Cellule QHSE</span>
+    <span>Pilotage QHSE · 2026-2027</span>
   </footer>
 </main>
 
@@ -911,16 +1026,18 @@ function majSync(mode){
   modeStockage = mode;
   const p = document.getElementById('etatSync');
   const t = document.getElementById('etatSyncTxt');
-  if (demo){ p.className = 'pill demo'; t.textContent = 'Mode démonstration — rien n’est enregistré'; return; }
+  if (demo){ p.className = 'pill demo'; t.textContent = 'Démonstration'; p.title = 'Données fictives, rien n’est enregistré'; return; }
   p.className = 'pill ' + (mode === 'partage' ? 'sync' : (mode === 'local' || mode === 'connexion') ? 'local'
     : (mode === 'erreur' || mode === 'nonmembre') ? 'err' : '');
-  t.textContent = mode === 'partage' ? 'Saisies partagées avec la cellule'
-    : mode === 'local' ? 'Saisies enregistrées sur ce navigateur seulement'
-    : mode === 'lecture' ? 'Consultation seule'
-    : mode === 'connexion' ? 'Connectez-vous pour voir et saisir le suivi'
-    : mode === 'nonmembre' ? 'Pas encore membre — demandez l’accès ci-dessous'
-    : mode === 'erreur' ? 'Échec d’enregistrement — vérifiez la connexion internet'
-    : 'Chargement…';
+  const lib = {
+    partage:['Synchronisé', 'Les saisies sont partagées en direct avec la cellule'],
+    local:['Enregistrement local', 'Les saisies restent sur ce navigateur'],
+    lecture:['Lecture seule', 'Votre rôle permet la consultation uniquement'],
+    connexion:['Non connecté', 'Connectez-vous pour consulter et saisir le suivi'],
+    nonmembre:['Accès en attente', 'Votre adresse n’est pas encore membre de la cellule'],
+    erreur:['Échec de synchronisation', 'La dernière saisie n’a pas pu être enregistrée : vérifiez la connexion']
+  }[mode] || ['Chargement…', ''];
+  t.textContent = lib[0]; p.title = lib[1];
 }
 
 async function enregistrerAct(code, statut){
@@ -1019,12 +1136,11 @@ function rendreCalendrier(){
   const ref = dateRef();
   document.getElementById('calPrint').textContent = frDate(demarrage);
   document.getElementById('calHint').textContent =
-    'Toutes les échéances en découlent · fin du cycle le ' + frDate(derniere) +
-    (demo ? ' · démonstration au ' + frDate(DATE_DEMO) : '');
+    'Fin du cycle : ' + frDate(derniere) + (demo ? ' · situation au ' + frDate(DATE_DEMO) : '');
   document.getElementById('calPer').innerHTML = PERIODES.filter(p=>p.id!=='CO').map(p=>{
     const x = b[p.id];
     const encours = ref >= x.debut && ref <= x.fin;
-    return `<span class="${encours?'encours':''}"><b>${echap(p.base)}</b> · ${frDate(x.debut)} – ${frDate(x.fin)}${encours?' · en cours':''}</span>`;
+    return `<span class="${encours?'encours':''}"><b>${echap(p.court)}</b> · ${frDate(x.debut)} – ${frDate(x.fin)}</span>`;
   }).join('');
 }
 
@@ -1054,7 +1170,7 @@ function rendrePlan(){
     return true;
   });
   document.getElementById('planCount').textContent =
-    sel.length + ' activité' + (sel.length>1?'s':'') + ' affichée' + (sel.length>1?'s':'') + ' sur ' + ACTIVITES.length;
+    sel.length === ACTIVITES.length ? ACTIVITES.length + ' activités' : sel.length + ' sur ' + ACTIVITES.length + ' activités';
 
   if (!sel.length){
     document.getElementById('plan').innerHTML = '<div class="empty">Aucune activité ne correspond à ces filtres.</div>';
@@ -1065,34 +1181,92 @@ function rendrePlan(){
     const retard = enRetard(a);
     const horsPerimetre = avantDemarrage(a);
     const maj = etatAct[a.c] && etatAct[a.c].maj;
-    return `<article class="act st-${st}${retard?' late':''}">
-      <div>
-        <div class="head">
-          <span class="code">${a.c}</span>
-          <span class="titre">${echap(a.t)}</span>
-        </div>
+    const per = PERIODES.find(p=>p.id===a.per);
+    const ech = a.dISO ? frDate(a.dISO) : 'échéance ' + frDate(finPeriode(a.per));
+    const ouvert = actOuvertes.has(a.c);
+    return `<article class="act st-${st}${retard?' late':''}${ouvert?' ouvert':''}">
+      <button class="act-main" type="button" data-ouvrir="${a.c}" aria-expanded="${ouvert}">
+        <span class="code">${a.c}</span>
+        <span class="titre">${echap(a.t)}</span>
+        <span class="meta">${a.per === 'CO' ? 'En continu' : echap(per ? per.court : '') + ' · ' + ech} · ${echap(a.pil)}</span>
+        <svg class="chev" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>
+      </button>
+      <div class="ctrl">
+        ${retard ? '<span class="badge">En retard</span>' : ''}
+        ${horsPerimetre ? '<span class="badge neutre" title="Date antérieure au démarrage du dispositif">Hors période</span>' : ''}
+        <span class="st-print">${STATUTS[st].lib}${retard ? ' — en retard' : ''}</span>
+        <select id="st-${a.c}" data-code="${a.c}" ${lectureSeule?'disabled':''} aria-label="Statut de l'activité ${a.c}">
+          ${Object.keys(STATUTS).map(k=>`<option value="${k}"${k===st?' selected':''}>${STATUTS[k].lib}</option>`).join('')}
+        </select>
+      </div>
+      <div class="act-det">
         <p class="obj">${echap(a.o)}</p>
         <div class="tags">
           ${a.d ? `<span class="tag date"><b>Date</b> · ${echap(a.d)}</span>` : ''}
           <span class="tag"><b>Période</b> · ${echap(libellePeriode(a.per))}</span>
-          <span class="tag"><b>Pilote</b> · ${echap(a.pil)}</span>
           <span class="tag"><b>Livrable</b> · ${echap(a.liv)}</span>
           <span class="tag iso">ISO 21001 ${echap(a.iso)}</span>
         </div>
-      </div>
-      <div class="ctrl">
-        ${retard ? '<span class="badge">En retard</span>' : ''}
-        ${horsPerimetre ? '<span class="badge neutre">Date passée avant le démarrage</span>' : ''}
-        <span class="st-print">${STATUTS[st].lib}${retard ? ' — en retard' : ''}</span>
-        <label class="sr" for="st-${a.c}" hidden>Statut de ${a.c}</label>
-        <select id="st-${a.c}" data-code="${a.c}" ${lectureSeule?'disabled':''} aria-label="Statut de l'activité ${a.c}">
-          ${Object.keys(STATUTS).map(k=>`<option value="${k}"${k===st?' selected':''}>${STATUTS[k].lib}</option>`).join('')}
-        </select>
-        <div class="maj">${maj ? 'Mis à jour le ' + maj.split('-').reverse().join('/') : 'Jamais renseigné'}</div>
+        <div class="maj">${maj ? 'Mis à jour le ' + maj.split('-').reverse().join('/') : 'Statut non renseigné'}</div>
       </div>
     </article>`;
   }).join('');
 }
+
+const actOuvertes = new Set();
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-ouvrir]');
+  if (!b) return;
+  const c = b.dataset.ouvrir;
+  if (actOuvertes.has(c)) actOuvertes.delete(c); else actOuvertes.add(c);
+  const art = b.closest('.act');
+  art.classList.toggle('ouvert', actOuvertes.has(c));
+  b.setAttribute('aria-expanded', actOuvertes.has(c));
+});
+
+/* ---- Points d'attention (synthèse) ---- */
+function rendreAttention(){
+  const retards = ACTIVITES.filter(enRetard)
+    .sort((x,y)=>String(echeanceDe(x)).localeCompare(String(echeanceDe(y))));
+  const prochaines = ACTIVITES
+    .filter(a=>!enRetard(a) && !avantDemarrage(a) && statutDe(a.c)!=='realise' && statutDe(a.c)!=='reporte' && echeanceDe(a) && echeanceDe(a) >= dateRef())
+    .sort((x,y)=>echeanceDe(x).localeCompare(echeanceDe(y))).slice(0, 5);
+  const sousCible = INDICATEURS.filter(i=>etatIndicateur(i)==='crit');
+  const u = i => i.unite==='%' ? ' %' : (i.unite==='nb' ? '' : ' ' + i.unite);
+  const ligneAct = (a, cls) => `<li><span class="t"><span class="code">${a.c}</span>${echap(a.t)}</span><span class="v ${cls||''}">${frDate(echeanceDe(a))}</span></li>`;
+  document.getElementById('attention').innerHTML = `
+    <div class="att"><h3>En retard · ${retards.length}</h3>
+      ${retards.length ? `<ul>${retards.slice(0,6).map(a=>ligneAct(a,'crit')).join('')}</ul>` : '<div class="vide">Aucune activité en retard.</div>'}
+    </div>
+    <div class="att"><h3>Indicateurs sous la cible · ${sousCible.length}</h3>
+      ${sousCible.length ? `<ul>${sousCible.slice(0,6).map(i=>`<li><span class="t">${echap(i.lib)}</span><span class="v crit">${String(valeurEffective(i)).replace('.',',')}${u(i)} / ${i.cible}${u(i)}</span></li>`).join('')}</ul>` : '<div class="vide">Aucun indicateur en alerte.</div>'}
+    </div>
+    <div class="att"><h3>Prochaines échéances</h3>
+      ${prochaines.length ? `<ul>${prochaines.map(a=>ligneAct(a)).join('')}</ul>` : '<div class="vide">Aucune échéance à venir.</div>'}
+    </div>`;
+}
+
+/* ---- Onglets ---- */
+const ONGLETS = ['synthese','plan','filieres','indicateurs','referentiel'];
+function ouvrirOnglet(id, maj){
+  if (ONGLETS.indexOf(id) === -1) id = 'synthese';
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('actif', p.dataset.panel === id));
+  document.querySelectorAll('.tabs [data-onglet]').forEach(b=>{
+    b.setAttribute('aria-selected', b.dataset.onglet === id ? 'true' : 'false');
+    b.tabIndex = b.dataset.onglet === id ? 0 : -1;
+  });
+  if (maj){ try{ history.replaceState(null, '', '#' + id); }catch(e){} window.scrollTo({top:0}); }
+}
+document.querySelector('.tabs').addEventListener('click', e=>{
+  const b = e.target.closest('[data-onglet]'); if (b) ouvrirOnglet(b.dataset.onglet, true);
+});
+document.querySelector('.tabs').addEventListener('keydown', e=>{
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  const cur = ONGLETS.indexOf((document.querySelector('.tabs [aria-selected="true"]')||{}).dataset.onglet);
+  const n = ONGLETS[(cur + (e.key === 'ArrowRight' ? 1 : ONGLETS.length - 1)) % ONGLETS.length];
+  ouvrirOnglet(n, true); document.querySelector(`.tabs [data-onglet="${n}"]`).focus();
+});
+ouvrirOnglet(location.hash.slice(1), false);
 
 function champInput(f, champ, suffixe){
   const v = f[champ];
@@ -1228,7 +1402,7 @@ function rendreIndicateurs(){
           const lib = {ok:'Cible atteinte', warn:'À surveiller', crit:'Sous la cible', none:'Non renseigné'}[e];
           const signe = i.sens==='bas' ? '≤ ' : i.sens==='zero' ? '' : '≥ ';
           const cellule = calcule
-            ? `<span class="taux">${Math.round(der*10)/10} ${i.unite==='%'?'%':echap(i.unite)}</span><span class="calc">calculé depuis le suivi par filière</span>`
+            ? `<span class="taux">${(Math.round(der*10)/10).toLocaleString('fr-FR')} ${i.unite==='%'?'%':echap(i.unite)}</span><span class="calc">calculé depuis le suivi par filière</span>`
             : `<input type="number" step="any" id="in-${i.id}" data-ind="${i.id}"
                  value="${v===null?'':v}" ${lectureSeule?'disabled':''}
                  aria-label="Relevé pour ${echap(i.lib)}" placeholder="—">`;
@@ -1265,7 +1439,7 @@ function rendre(){
   const actif = document.activeElement;
   const idActif = actif && actif.id ? actif.id : null;
   const caret = (actif && typeof actif.selectionStart === 'number') ? actif.selectionStart : null;
-  rendreKpis(); rendreCalendrier(); rendreAxes(); rendrePlan(); rendreFilieres(); rendreIndicateurs();
+  rendreKpis(); rendreCalendrier(); rendreAxes(); rendreAttention(); rendrePlan(); rendreFilieres(); rendreIndicateurs();
   if (idActif){
     const el = document.getElementById(idActif);
     if (el){ el.focus(); if (caret !== null){ try{ el.setSelectionRange(caret, caret); }catch(e){} } }
@@ -1718,10 +1892,10 @@ function brancherSupabase(){
       email:email,
       options:{emailRedirectTo: location.origin + location.pathname}
     });
-    btn.disabled = false; btn.textContent = 'Recevoir le lien de connexion';
+    btn.disabled = false; btn.textContent = 'Recevoir le lien';
     afficherAuth(false, error
       ? 'Envoi impossible : ' + (/rate|limit/i.test(error.message) ? 'trop de demandes, réessayez plus tard' : error.message)
-      : 'Lien envoyé à ' + email + ' — ouvrez-le sur cet appareil.');
+      : 'Lien envoyé à ' + email + ' · ouvrez-le sur cet appareil');
   });
   document.getElementById('btnLogout').addEventListener('click', ()=>{ sb.auth.signOut(); });
   // Le rappel ne doit pas attendre d'autres appels Supabase : on diffère le traitement.
