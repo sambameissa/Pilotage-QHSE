@@ -343,7 +343,10 @@ footer p{margin:0 0 6px; max-width:78ch}
 .gate-corps input{width:100%; box-sizing:border-box; font:inherit; font-size:14.5px; color:var(--ink); background:var(--surface);
   border:1px solid var(--line-strong); border-radius:9px; padding:10px 12px; margin-bottom:12px}
 .gate-corps input:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
-.gate-corps .btn.primary{width:100%; padding:10px 12px; font-size:14px}
+.gate-corps .btn.primary{width:100%; padding:10px 12px; font-size:14px; margin-top:4px}
+.gate-corps .btn.primary:disabled{opacity:.7; cursor:progress}
+.lab-ligne{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+.lab-ligne label{margin-bottom:6px}
 .gate-corps .msg{text-align:center; margin:10px 0 0}
 .gate-aide{font-size:12px; color:var(--ink-3); text-align:center; margin:14px 0 0}
 button.lien{all:unset; cursor:pointer; color:var(--accent); font-size:12.5px; font-weight:600}
@@ -1731,60 +1734,152 @@ function afficherAuth(connecte, texte){
   u.hidden = !texte; u.textContent = texte || '';
 }
 
-/* ---- Écran de connexion ---- */
+/* ---- Écran de connexion (e-mail + mot de passe) ---- */
 const ICONE_OK = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8 6 8-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>';
+const MDP_MIN = 8;
+const URL_APP = location.origin + location.pathname;
+let modeRecup = /[?&#](recuperation=1|type=recovery)/.test(location.search + location.hash);
+
 function verrouiller(etat){ document.documentElement.setAttribute('data-auth', etat); }
 function deverrouiller(){ document.documentElement.removeAttribute('data-auth'); }
+const champ = (id, lib, type, extra) => `<label for="${id}">${lib}</label><input id="${id}" type="${type}" ${extra||''}>`;
+const lienGate = (cle, lib) => `<button class="lien" type="button" data-gate="${cle}">${lib}</button>`;
+
 function afficherGate(etat, info){
   verrouiller(etat);
   const c = document.getElementById('gateCorps');
+  const email = echap(info || '');
+  let h = '';
   if (etat === 'chargement'){
-    c.innerHTML = '<div class="spin" aria-hidden="true"></div><p class="gate-txt">Chargement…</p>'; return;
-  }
-  if (etat === 'indispo'){
-    c.innerHTML = '<p class="gate-txt">Le service de connexion est momentanément indisponible. Vérifiez votre connexion internet puis rechargez la page.</p>'; return;
-  }
-  if (etat === 'envoye'){
-    c.innerHTML = `<div class="gate-ok" aria-hidden="true">${ICONE_OK}</div>
+    h = '<div class="spin" aria-hidden="true"></div><p class="gate-txt">Chargement…</p>';
+  } else if (etat === 'indispo'){
+    h = '<p class="gate-txt">Le service de connexion est momentanément indisponible. Vérifiez votre connexion internet puis rechargez la page.</p>';
+  } else if (etat === 'envoye'){
+    h = `<div class="gate-ok" aria-hidden="true">${ICONE_OK}</div>
       <h2>Vérifiez votre boîte de réception</h2>
-      <p class="gate-txt">Un lien de connexion a été envoyé à <b>${echap(info)}</b>. Ouvrez-le sur cet appareil. S'il n'arrive pas, consultez le courrier indésirable.</p>
-      <p class="gate-aide"><button class="lien" type="button" data-gate="retour">Utiliser une autre adresse</button></p>`;
-    return;
+      <p class="gate-txt">Un e-mail a été envoyé à <b>${email}</b> pour choisir un nouveau mot de passe. Pensez à consulter le courrier indésirable.</p>
+      <p class="gate-aide">${lienGate('connexion','Retour à la connexion')}</p>`;
+  } else if (etat === 'confirmer'){
+    h = `<div class="gate-ok" aria-hidden="true">${ICONE_OK}</div>
+      <h2>Confirmez votre adresse</h2>
+      <p class="gate-txt">Votre compte est créé. Ouvrez le lien envoyé à <b>${email}</b> pour l'activer, puis connectez-vous.</p>
+      <p class="gate-aide">${lienGate('connexion','Retour à la connexion')}</p>`;
+  } else if (etat === 'inscription'){
+    h = `<h2>Créer votre compte</h2>
+      <p class="gate-txt">Première connexion : choisissez votre mot de passe. L'accès au tableau de bord est ensuite validé par un administrateur de la cellule.</p>
+      <form data-form="inscription" novalidate>
+        ${champ('gEmail','Adresse e-mail','email',`required autocomplete="email" value="${email}"`)}
+        ${champ('gMdp','Mot de passe','password',`required autocomplete="new-password" minlength="${MDP_MIN}" placeholder="${MDP_MIN} caractères minimum"`)}
+        ${champ('gMdp2','Confirmer le mot de passe','password','required autocomplete="new-password"')}
+        <button class="btn primary" type="submit">Créer mon compte</button>
+        <p class="msg err" id="gMsg"></p>
+      </form>
+      <p class="gate-aide">Déjà un compte ? ${lienGate('connexion','Se connecter')}</p>`;
+  } else if (etat === 'oubli'){
+    h = `<h2>Mot de passe oublié</h2>
+      <p class="gate-txt">Indiquez votre adresse : vous recevrez un lien pour choisir un nouveau mot de passe.</p>
+      <form data-form="oubli" novalidate>
+        ${champ('gEmail','Adresse e-mail','email',`required autocomplete="email" value="${email}"`)}
+        <button class="btn primary" type="submit">Envoyer le lien</button>
+        <p class="msg err" id="gMsg"></p>
+      </form>
+      <p class="gate-aide">${lienGate('connexion','Retour à la connexion')}</p>`;
+  } else if (etat === 'nouveau'){
+    h = `<h2>Nouveau mot de passe</h2>
+      <p class="gate-txt">Choisissez le mot de passe de votre compte.</p>
+      <form data-form="nouveau" novalidate>
+        ${champ('gMdp','Nouveau mot de passe','password',`required autocomplete="new-password" minlength="${MDP_MIN}" placeholder="${MDP_MIN} caractères minimum"`)}
+        ${champ('gMdp2','Confirmer le mot de passe','password','required autocomplete="new-password"')}
+        <button class="btn primary" type="submit">Enregistrer</button>
+        <p class="msg err" id="gMsg"></p>
+      </form>`;
+  } else { // connexion
+    h = `<p class="gate-txt">Connectez-vous pour accéder au suivi de la cellule.</p>
+      <form data-form="connexion" novalidate>
+        ${champ('gEmail','Adresse e-mail','email',`required autocomplete="username" value="${email}"`)}
+        <div class="lab-ligne"><label for="gMdp">Mot de passe</label>${lienGate('oubli','Mot de passe oublié ?')}</div>
+        <input id="gMdp" type="password" required autocomplete="current-password">
+        <button class="btn primary" type="submit">Se connecter</button>
+        <p class="msg err" id="gMsg"></p>
+      </form>
+      <p class="gate-aide">Première connexion ? ${lienGate('inscription','Créer votre compte')}</p>`;
   }
-  // connexion
-  c.innerHTML = `<p class="gate-txt">Connectez-vous avec votre adresse e-mail. Vous recevrez un lien de connexion, sans mot de passe.</p>
-    <form id="authForm" novalidate>
-      <label for="authEmail">Adresse e-mail</label>
-      <input type="email" id="authEmail" required autocomplete="email" placeholder="prenom.nom@exemple.sn" value="${echap(info||'')}">
-      <button class="btn primary" type="submit" id="authBtn">Recevoir le lien de connexion</button>
-      <p class="msg err" id="authMsg"></p>
-    </form>`;
-  setTimeout(()=>{ const i = document.getElementById('authEmail'); if (i) i.focus(); }, 30);
+  c.innerHTML = h;
+  setTimeout(()=>{
+    const premier = c.querySelector('input:not([value]), input[value=""]') || c.querySelector('input');
+    if (premier) premier.focus();
+  }, 30);
 }
+
+function traduireErreur(error){
+  const m = (error && error.message) || '';
+  if (/invalid login credentials/i.test(m)) return 'Adresse ou mot de passe incorrect.';
+  if (/email not confirmed/i.test(m)) return 'Adresse pas encore confirmée : ouvrez le lien reçu par e-mail.';
+  if (/already registered|already been registered|user already exists/i.test(m)) return 'Un compte existe déjà pour cette adresse. Connectez-vous, ou utilisez « Mot de passe oublié ».';
+  if (/password.*(at least|short|weak)|weak.*password/i.test(m)) return 'Mot de passe trop faible : ' + MDP_MIN + ' caractères minimum, mélangez lettres et chiffres.';
+  if (/rate|limit|seconds|too many/i.test(m)) return 'Trop de tentatives rapprochées. Réessayez dans quelques minutes.';
+  if (/same.*password|different from the old/i.test(m)) return 'Choisissez un mot de passe différent de l’ancien.';
+  return m || 'Erreur inattendue.';
+}
+const valeur = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+const emailValide = e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+
 document.addEventListener('click', e=>{
   const b = e.target.closest('[data-gate]');
   if (!b || !sb) return;
-  if (b.dataset.gate === 'retour') afficherGate('connexion');
-  if (b.dataset.gate === 'deconnexion') sb.auth.signOut();
+  const g = b.dataset.gate;
+  if (g === 'deconnexion'){ sb.auth.signOut(); return; }
+  afficherGate(g, valeur('gEmail').trim());
 });
+
 document.addEventListener('submit', async e=>{
-  if (e.target.id !== 'authForm' || !sb) return;
+  const f = e.target.closest('form[data-form]');
+  if (!f || !sb) return;
   e.preventDefault();
-  const input = document.getElementById('authEmail');
-  const msg = document.getElementById('authMsg');
-  const btn = document.getElementById('authBtn');
-  const email = input.value.trim();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.textContent = 'Saisissez une adresse e-mail valide.'; input.focus(); return; }
-  btn.disabled = true; btn.textContent = 'Envoi…'; msg.textContent = '';
-  const {error} = await sb.auth.signInWithOtp({email:email, options:{emailRedirectTo: location.origin + location.pathname}});
-  if (error){
-    btn.disabled = false; btn.textContent = 'Recevoir le lien de connexion';
-    msg.textContent = /rate|limit|seconds/i.test(error.message)
-      ? 'Trop de demandes rapprochées. Réessayez dans quelques minutes.'
-      : 'Envoi impossible : ' + error.message;
+  const type = f.dataset.form;
+  const msg = document.getElementById('gMsg');
+  const btn = f.querySelector('button[type="submit"]');
+  const email = valeur('gEmail').trim().toLowerCase();
+  const mdp = valeur('gMdp'), mdp2 = valeur('gMdp2');
+  const erreur = t => { msg.textContent = t; btn.disabled = false; btn.textContent = btn.dataset.lib || btn.textContent; };
+
+  if (type !== 'nouveau' && !emailValide(email)) return erreur('Saisissez une adresse e-mail valide.');
+  if (type === 'connexion' && !mdp) return erreur('Saisissez votre mot de passe.');
+  if (type === 'inscription' || type === 'nouveau'){
+    if (mdp.length < MDP_MIN) return erreur('Le mot de passe doit contenir au moins ' + MDP_MIN + ' caractères.');
+    if (mdp !== mdp2) return erreur('Les deux mots de passe ne correspondent pas.');
+  }
+  btn.dataset.lib = btn.textContent; btn.disabled = true; btn.textContent = 'Patientez…'; msg.textContent = '';
+
+  if (type === 'connexion'){
+    const {error} = await sb.auth.signInWithPassword({email:email, password:mdp});
+    if (error) return erreur(traduireErreur(error));
+    return; // la suite passe par onAuthStateChange
+  }
+  if (type === 'inscription'){
+    const {data, error} = await sb.auth.signUp({email:email, password:mdp, options:{emailRedirectTo: URL_APP}});
+    if (error) return erreur(traduireErreur(error));
+    // Adresse déjà inscrite : Supabase renvoie un compte sans identité, sans le dire.
+    if (data && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)
+      return erreur(traduireErreur({message:'already registered'}));
+    if (!data.session) afficherGate('confirmer', email);
+    return; // avec session : onAuthStateChange prend le relais
+  }
+  if (type === 'oubli'){
+    const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: URL_APP + '?recuperation=1'});
+    if (error) return erreur(traduireErreur(error));
+    afficherGate('envoye', email);
     return;
   }
-  afficherGate('envoye', email);
+  if (type === 'nouveau'){
+    const {data, error} = await sb.auth.updateUser({password:mdp});
+    if (error) return erreur(traduireErreur(error));
+    modeRecup = false;
+    try{ history.replaceState(null, '', URL_APP); }catch(err){}
+    const {data:s} = await sb.auth.getSession();
+    sessionId = undefined;
+    ouvrirSession(s.session);
+  }
 });
 
 async function ouvrirSession(session){
@@ -1893,7 +1988,7 @@ async function rendreGestion(message, ok){
   z.innerHTML = `<section class="panneau">
     <div class="sec-head" style="margin-bottom:4px"><h2>Gérer la cellule</h2>
       <div class="note"><button class="btn" data-g="fermer">Fermer</button></div></div>
-    <p>Une personne inscrite ici se connecte avec son adresse e-mail en recevant un lien. Envoyez-lui simplement l'adresse de ce tableau de bord. Les <b>éditeurs</b> saisissent, les <b>lecteurs</b> consultent, les <b>administrateurs</b> saisissent et gèrent la cellule.</p>
+    <p>Une personne ajoutée ici crée son compte depuis l'écran de connexion (« Créer votre compte ») avec la même adresse. Les <b>éditeurs</b> saisissent, les <b>lecteurs</b> consultent, les <b>administrateurs</b> saisissent et gèrent la cellule. N'acceptez une demande qu'après avoir reconnu la personne.</p>
     <p class="msg ${ok?'ok':'err'}" id="gMsg">${message ? echap(message) : ''}</p>
 
     <h3>Demandes en attente${d.data.length ? ' · ' + d.data.length : ''}</h3>
@@ -1982,7 +2077,13 @@ function brancherSupabase(){
   sb = window.supabase.createClient(c.supabaseUrl, c.supabaseAnonKey);
   document.getElementById('btnLogout').addEventListener('click', ()=>{ sb.auth.signOut(); });
   // Le rappel ne doit pas attendre d'autres appels Supabase : on diffère le traitement.
-  sb.auth.onAuthStateChange((evt, session)=>{ setTimeout(()=>ouvrirSession(session), 0); });
+  sb.auth.onAuthStateChange((evt, session)=>{
+    if (evt === 'PASSWORD_RECOVERY') modeRecup = true;
+    setTimeout(()=>{
+      if (modeRecup && session){ afficherGate('nouveau'); return; }
+      ouvrirSession(session);
+    }, 0);
+  });
 }
 
 function demarrer(){

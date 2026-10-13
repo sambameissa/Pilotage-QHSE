@@ -1,6 +1,6 @@
 # Pilotage QHSE Delafosse — version en ligne
 
-Tableau de bord QHSE partagé entre les membres de la cellule : les saisies sont enregistrées dans une base Supabase et apparaissent en direct chez tous les membres connectés. Connexion par lien magique envoyé par e-mail, réservée aux adresses inscrites.
+Tableau de bord QHSE partagé entre les membres de la cellule : les saisies sont enregistrées dans une base Supabase et apparaissent en direct chez tous les membres connectés. Connexion par e-mail et mot de passe ; l'accès aux données est réservé aux membres validés par un administrateur.
 
 Deux fichiers :
 
@@ -60,7 +60,7 @@ Indispensable pour que le lien reçu par e-mail ramène au tableau de bord :
 
 ## 5. Utilisation et embarquement des membres
 
-- **Se connecter** : saisir son adresse e-mail, cliquer **Recevoir le lien de connexion**, puis ouvrir le lien reçu **sur le même appareil**. La session reste ouverte ensuite.
+- **Se connecter** : adresse e-mail et mot de passe. À la première visite, cliquer **Créer votre compte** et choisir un mot de passe (8 caractères minimum). Un e-mail n'est envoyé qu'en cas de **mot de passe oublié**.
 - **Rôles** : *administrateur* (saisit et gère la cellule), *éditeur* (saisit), *lecteur* (consulte seulement).
 - **Faire entrer un nouveau membre**, deux façons :
   1. *Il fait la demande* : il ouvre le tableau de bord, se connecte, et voit le formulaire « Rejoindre la cellule » (nom, fonction). Un administrateur voit la demande dans **Gérer la cellule**, choisit le rôle et clique **Accepter**.
