@@ -326,6 +326,36 @@ footer p{margin:0 0 6px; max-width:78ch}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
 
+/* ---------- Écran de connexion ---------- */
+.gate{display:none; min-height:100vh; min-height:100dvh; padding:24px 16px; box-sizing:border-box;
+  flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  background:radial-gradient(1200px 500px at 50% -10%, var(--accent-soft), transparent 70%), var(--ground)}
+:root[data-auth] .gate{display:flex}
+:root[data-auth] header.top, :root[data-auth] main, :root[data-auth] .demo-bar{display:none !important}
+.gate-card{width:100%; max-width:400px; background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  box-shadow:var(--shadow); padding:30px 28px 26px; text-align:center}
+.gate-logo{width:52px; height:52px; border-radius:13px; margin:0 auto 14px}
+.gate-card h1{font-size:22px; margin:2px 0 18px}
+.gate-corps{text-align:left}
+.gate-corps h2{font-size:15px; margin-bottom:6px; text-align:center}
+.gate-txt{font-size:13.5px; color:var(--ink-2); margin:0 0 14px; text-align:center}
+.gate-corps label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-2); margin-bottom:6px}
+.gate-corps input{width:100%; box-sizing:border-box; font:inherit; font-size:14.5px; color:var(--ink); background:var(--surface);
+  border:1px solid var(--line-strong); border-radius:9px; padding:10px 12px; margin-bottom:12px}
+.gate-corps input:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+.gate-corps .btn.primary{width:100%; padding:10px 12px; font-size:14px}
+.gate-corps .msg{text-align:center; margin:10px 0 0}
+.gate-aide{font-size:12px; color:var(--ink-3); text-align:center; margin:14px 0 0}
+button.lien{all:unset; cursor:pointer; color:var(--accent); font-size:12.5px; font-weight:600}
+button.lien:hover{text-decoration:underline}
+button.lien:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+.gate-pied{font-size:12px; color:var(--ink-3); margin:0}
+.gate-ok{display:grid; place-items:center; width:44px; height:44px; border-radius:50%; background:var(--good-soft); color:var(--good); margin:0 auto 10px}
+.spin{width:22px; height:22px; border-radius:50%; border:2.5px solid var(--line-strong); border-top-color:var(--accent);
+  margin:6px auto 12px; animation:tourne .8s linear infinite}
+@keyframes tourne{to{transform:rotate(360deg)}}
+@media print{ .gate{display:none !important} }
+
 /* ---------- Refonte : en-tête, onglets, plan compact ---------- */
 .top-in{align-items:center; padding-block:14px 10px}
 .brand{flex-direction:row; align-items:center; gap:12px}
@@ -432,10 +462,22 @@ window.QHSE_CONFIG = {
   supabaseUrl: 'https://plippuihrvzqfvnxqkim.supabase.co',
   supabaseAnonKey: 'sb_publishable_2olwFlC9pBNj3KgCKPgWzA_VBA8f_c7'
 };
+if (window.QHSE_CONFIG.supabaseUrl && window.QHSE_CONFIG.supabaseAnonKey){
+  document.documentElement.setAttribute('data-auth', 'chargement');
+}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<div class="gate" id="gate" aria-live="polite">
+  <div class="gate-card">
+    <span class="logo gate-logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>
+    <div class="eyebrow">CFPC Maurice Delafosse</div>
+    <h1>Pilotage QHSE</h1>
+    <div class="gate-corps" id="gateCorps"><p class="gate-txt">Chargement…</p></div>
+  </div>
+  <p class="gate-pied">Cellule QHSE · Accès réservé aux membres</p>
+</div>
 <header class="top">
   <div class="wrap top-in">
     <div class="brand">
@@ -450,10 +492,6 @@ window.QHSE_CONFIG = {
     </div>
     <div class="statebar">
       <span class="pill" id="etatSync"><span class="dot"></span><span id="etatSyncTxt">Chargement…</span></span>
-      <form id="authForm" class="auth" hidden>
-        <input type="email" id="authEmail" placeholder="Adresse e-mail" required autocomplete="email" aria-label="Adresse e-mail">
-        <button class="btn primary" type="submit" id="authBtn">Recevoir le lien</button>
-      </form>
       <span class="who" id="authUser" hidden></span>
       <button class="btn" id="btnGestion" hidden>Gérer la cellule</button>
       <span class="sep" aria-hidden="true"></span>
@@ -1645,7 +1683,7 @@ function brancherCsv(){
 /* ---- Base partagée Supabase ----
    Une seule table « qhse_docs » (collection, doc_id, data) reprend
    les collections du tableau : suivi, indicateurs, filieres, config. */
-let sb = null, utilisateur = null, canal = null, sessionId = null;
+let sb = null, utilisateur = null, canal = null, sessionId; // undefined : aucune session traitée
 const COLL_CLE = {suivi:'act', indicateurs:'ind', filieres:'fil'};
 
 function supabaseConfigure(){
@@ -1688,11 +1726,66 @@ function viderEtat(){
   else { etatAct = {}; etatInd = {}; etatFil = {}; demarrage = DEMARRAGE_DEFAUT; }
 }
 function afficherAuth(connecte, texte){
-  document.getElementById('authForm').hidden = connecte;
   document.getElementById('btnLogout').hidden = !connecte;
   const u = document.getElementById('authUser');
   u.hidden = !texte; u.textContent = texte || '';
 }
+
+/* ---- Écran de connexion ---- */
+const ICONE_OK = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8 6 8-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>';
+function verrouiller(etat){ document.documentElement.setAttribute('data-auth', etat); }
+function deverrouiller(){ document.documentElement.removeAttribute('data-auth'); }
+function afficherGate(etat, info){
+  verrouiller(etat);
+  const c = document.getElementById('gateCorps');
+  if (etat === 'chargement'){
+    c.innerHTML = '<div class="spin" aria-hidden="true"></div><p class="gate-txt">Chargement…</p>'; return;
+  }
+  if (etat === 'indispo'){
+    c.innerHTML = '<p class="gate-txt">Le service de connexion est momentanément indisponible. Vérifiez votre connexion internet puis rechargez la page.</p>'; return;
+  }
+  if (etat === 'envoye'){
+    c.innerHTML = `<div class="gate-ok" aria-hidden="true">${ICONE_OK}</div>
+      <h2>Vérifiez votre boîte de réception</h2>
+      <p class="gate-txt">Un lien de connexion a été envoyé à <b>${echap(info)}</b>. Ouvrez-le sur cet appareil. S'il n'arrive pas, consultez le courrier indésirable.</p>
+      <p class="gate-aide"><button class="lien" type="button" data-gate="retour">Utiliser une autre adresse</button></p>`;
+    return;
+  }
+  // connexion
+  c.innerHTML = `<p class="gate-txt">Connectez-vous avec votre adresse e-mail. Vous recevrez un lien de connexion, sans mot de passe.</p>
+    <form id="authForm" novalidate>
+      <label for="authEmail">Adresse e-mail</label>
+      <input type="email" id="authEmail" required autocomplete="email" placeholder="prenom.nom@exemple.sn" value="${echap(info||'')}">
+      <button class="btn primary" type="submit" id="authBtn">Recevoir le lien de connexion</button>
+      <p class="msg err" id="authMsg"></p>
+    </form>`;
+  setTimeout(()=>{ const i = document.getElementById('authEmail'); if (i) i.focus(); }, 30);
+}
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-gate]');
+  if (!b || !sb) return;
+  if (b.dataset.gate === 'retour') afficherGate('connexion');
+  if (b.dataset.gate === 'deconnexion') sb.auth.signOut();
+});
+document.addEventListener('submit', async e=>{
+  if (e.target.id !== 'authForm' || !sb) return;
+  e.preventDefault();
+  const input = document.getElementById('authEmail');
+  const msg = document.getElementById('authMsg');
+  const btn = document.getElementById('authBtn');
+  const email = input.value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.textContent = 'Saisissez une adresse e-mail valide.'; input.focus(); return; }
+  btn.disabled = true; btn.textContent = 'Envoi…'; msg.textContent = '';
+  const {error} = await sb.auth.signInWithOtp({email:email, options:{emailRedirectTo: location.origin + location.pathname}});
+  if (error){
+    btn.disabled = false; btn.textContent = 'Recevoir le lien de connexion';
+    msg.textContent = /rate|limit|seconds/i.test(error.message)
+      ? 'Trop de demandes rapprochées. Réessayez dans quelques minutes.'
+      : 'Envoi impossible : ' + error.message;
+    return;
+  }
+  afficherGate('envoye', email);
+});
 
 async function ouvrirSession(session){
   const id = session && session.user ? session.user.id : null;
@@ -1705,19 +1798,21 @@ async function ouvrirSession(session){
   if (!session){
     utilisateur = null;
     afficherAuth(false, '');
-    majSync('connexion'); rendre(); return;
+    majSync('connexion'); rendre(); afficherGate('connexion'); return;
   }
+  afficherGate('chargement');
   utilisateur = session.user;
   afficherAuth(true, utilisateur.email);
   majSync('chargement');
 
   const {data:role, error:errRole} = await sb.rpc('mon_role');
   monRole = errRole ? null : role;
-  if (!monRole){ majSync('nonmembre'); rendre(); rendreDemandeAcces(); return; }
+  if (!monRole){ majSync('nonmembre'); rendre(); verrouiller('demande'); rendreDemandeAcces(); return; }
 
   const {data:lignes, error} = await sb.from('qhse_docs').select('collection,doc_id,data');
-  if (error){ majSync('erreur'); rendre(); return; }
+  if (error){ majSync('erreur'); rendre(); afficherGate('indispo'); return; }
   lignes.forEach(recevoir);
+  deverrouiller();
 
   dbNs = adaptateurSupabase();
   lectureSeule = !(role === 'editeur' || role === 'admin');
@@ -1744,30 +1839,34 @@ function messageRpc(error){
 function dateCourte(iso){ return iso ? frDate(String(iso).slice(0,10)) : ''; }
 
 async function rendreDemandeAcces(){
-  const z = zoneAcces();
+  const c = document.getElementById('gateCorps');
   const {data:enAttente} = await sb.rpc('ma_demande');
-  z.hidden = false;
-  z.innerHTML = `<section class="panneau">
-    <h2>Rejoindre la cellule QHSE</h2>
-    ${enAttente
-      ? `<p>Votre demande d'accès pour <b>${echap(utilisateur.email)}</b> est enregistrée. Un administrateur de la cellule doit la valider ; rechargez ensuite la page.</p>`
-      : `<p>L'adresse <b>${echap(utilisateur.email)}</b> n'est pas encore inscrite. Présentez-vous : un administrateur de la cellule validera votre accès.</p>
-         <form id="formDemande" class="ligne-form">
-           <input id="dNom" placeholder="Prénom et nom" required maxlength="120" autocomplete="name" aria-label="Prénom et nom">
-           <input id="dFonction" placeholder="Fonction au centre (ex. chef de département)" maxlength="120" aria-label="Fonction">
-           <button class="btn" type="submit">Demander l'accès</button>
-         </form>
-         <p class="msg" id="dMsg"></p>`}
-  </section>`;
-  const f = document.getElementById('formDemande');
-  if (!f) return;
-  f.addEventListener('submit', async e=>{
+  const pied = `<p class="gate-aide">Connecté en tant que ${echap(utilisateur.email)} · <button class="lien" type="button" data-gate="deconnexion">Se déconnecter</button></p>`;
+  if (enAttente){
+    c.innerHTML = `<div class="gate-ok" aria-hidden="true">${ICONE_OK}</div>
+      <h2>Demande envoyée</h2>
+      <p class="gate-txt">Un administrateur de la cellule doit valider votre accès. Rechargez la page une fois votre accès confirmé.</p>${pied}`;
+    return;
+  }
+  c.innerHTML = `<h2>Demander l'accès</h2>
+    <p class="gate-txt">Votre adresse n'est pas encore inscrite. Présentez-vous : un administrateur validera votre accès.</p>
+    <form id="formDemande" novalidate>
+      <label for="dNom">Prénom et nom</label>
+      <input id="dNom" required maxlength="120" autocomplete="name">
+      <label for="dFonction">Fonction au centre</label>
+      <input id="dFonction" maxlength="120" placeholder="ex. chef de département">
+      <button class="btn primary" type="submit">Envoyer la demande</button>
+      <p class="msg err" id="dMsg"></p>
+    </form>${pied}`;
+  document.getElementById('formDemande').addEventListener('submit', async e=>{
     e.preventDefault();
+    const m = document.getElementById('dMsg');
+    if (!document.getElementById('dNom').value.trim()){ m.textContent = 'Indiquez votre nom.'; return; }
     const {error} = await sb.rpc('demander_acces', {
       p_nom: document.getElementById('dNom').value,
       p_fonction: document.getElementById('dFonction').value
     });
-    if (error){ const m = document.getElementById('dMsg'); m.className = 'msg err'; m.textContent = messageRpc(error); return; }
+    if (error){ m.textContent = messageRpc(error); return; }
     rendreDemandeAcces();
   });
 }
@@ -1881,28 +1980,16 @@ function brancherSupabase(){
   });
   const c = window.QHSE_CONFIG;
   sb = window.supabase.createClient(c.supabaseUrl, c.supabaseAnonKey);
-  const form = document.getElementById('authForm');
-  form.addEventListener('submit', async e=>{
-    e.preventDefault();
-    const email = document.getElementById('authEmail').value.trim();
-    const btn = document.getElementById('authBtn');
-    if (!email) return;
-    btn.disabled = true; btn.textContent = 'Envoi…';
-    const {error} = await sb.auth.signInWithOtp({
-      email:email,
-      options:{emailRedirectTo: location.origin + location.pathname}
-    });
-    btn.disabled = false; btn.textContent = 'Recevoir le lien';
-    afficherAuth(false, error
-      ? 'Envoi impossible : ' + (/rate|limit/i.test(error.message) ? 'trop de demandes, réessayez plus tard' : error.message)
-      : 'Lien envoyé à ' + email + ' · ouvrez-le sur cet appareil');
-  });
   document.getElementById('btnLogout').addEventListener('click', ()=>{ sb.auth.signOut(); });
   // Le rappel ne doit pas attendre d'autres appels Supabase : on diffère le traitement.
   sb.auth.onAuthStateChange((evt, session)=>{ setTimeout(()=>ouvrirSession(session), 0); });
 }
 
 function demarrer(){
+  const c = window.QHSE_CONFIG || {};
+  if (c.supabaseUrl && c.supabaseAnonKey && !supabaseConfigure()){
+    monterFiltres(); rendreStatique(); afficherGate('indispo'); return;
+  }
   monterFiltres();
   rendreStatique();
   brancherCsv();
@@ -1910,6 +1997,7 @@ function demarrer(){
     lectureSeule = true;
     afficherAuth(false, '');
     majSync('connexion'); rendre();
+    afficherGate('chargement');
     brancherSupabase();
   } else {
     lireLocal();
