@@ -58,12 +58,16 @@ Indispensable pour que le lien reçu par e-mail ramène au tableau de bord :
 - **Site URL** : l'adresse du site (ex. `https://compte.github.io/qhse/`)
 - **Redirect URLs** : ajouter la même adresse
 
-## 5. Utilisation
+## 5. Utilisation et embarquement des membres
 
-- Chaque membre saisit son adresse e-mail, clique **Recevoir le lien de connexion**, puis ouvre le lien reçu **sur le même appareil**. La session reste ouverte ensuite.
-- Une adresse non inscrite peut recevoir le lien mais voit « Adresse non autorisée » et n'accède à aucune donnée.
-- Ajouter ou retirer un membre : **Table Editor → qhse_membres** (ou les requêtes en bas du script SQL).
-- Voir qui a modifié quoi : **Table Editor → qhse_journal**.
+- **Se connecter** : saisir son adresse e-mail, cliquer **Recevoir le lien de connexion**, puis ouvrir le lien reçu **sur le même appareil**. La session reste ouverte ensuite.
+- **Rôles** : *administrateur* (saisit et gère la cellule), *éditeur* (saisit), *lecteur* (consulte seulement).
+- **Faire entrer un nouveau membre**, deux façons :
+  1. *Il fait la demande* : il ouvre le tableau de bord, se connecte, et voit le formulaire « Rejoindre la cellule » (nom, fonction). Un administrateur voit la demande dans **Gérer la cellule**, choisit le rôle et clique **Accepter**.
+  2. *L'administrateur l'inscrit directement* : **Gérer la cellule → Ajouter directement un membre**, puis lui envoie l'adresse du tableau de bord.
+- Depuis **Gérer la cellule**, un administrateur peut aussi changer un rôle ou retirer un membre. Il ne peut ni se retirer lui-même, ni s'enlever le rôle d'administrateur : nommez un second administrateur pour ne jamais perdre la main.
+- Une adresse non inscrite qui se connecte ne voit aucune donnée.
+- **Qui a modifié quoi** : table `qhse_journal` dans Supabase (Table Editor).
 - Le **mode démonstration** et l'**export CSV** fonctionnent comme avant.
 
 ## Limites de l'offre gratuite à connaître

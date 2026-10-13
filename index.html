@@ -86,6 +86,18 @@ h1{font-size:19px; font-weight:700; letter-spacing:-.01em}
 .auth{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
 .auth input{font:inherit; font-size:12.5px; color:var(--ink); background:var(--surface); border:1px solid var(--line-strong); border-radius:8px; padding:5px 9px; min-width:200px}
 .who{font-size:12px; color:var(--ink-2)}
+.panneau{margin-top:22px; background:var(--surface); border:1px solid var(--accent); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow)}
+.panneau h2{font-size:15.5px; margin-bottom:6px}
+.panneau h3{font-size:13px; margin:16px 0 8px}
+.panneau p{margin:0 0 10px; font-size:13.5px; color:var(--ink-2); max-width:80ch}
+.ligne-form{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.ligne-form input, .ligne-form select{font:inherit; font-size:13px; color:var(--ink); background:var(--surface); border:1px solid var(--line-strong); border-radius:8px; padding:6px 9px}
+.ligne-form input{flex:1 1 200px; min-width:0}
+.panneau table{min-width:560px}
+.panneau td .btn{padding:3px 9px; font-size:12px}
+.msg{font-size:12.5px; min-height:1em}
+.msg.err{color:var(--crit)} .msg.ok{color:var(--good)}
+.btn-row{display:flex; gap:6px; flex-wrap:wrap}
 .pill .dot{width:7px; height:7px; border-radius:50%; background:currentColor; flex:none}
 .pill.sync{color:var(--good); border-color:color-mix(in srgb, var(--good) 40%, var(--line)); background:var(--good-soft)}
 .pill.local{color:var(--warn); border-color:color-mix(in srgb, var(--warn) 40%, var(--line)); background:var(--warn-soft)}
@@ -292,7 +304,7 @@ footer p{margin:0 0 6px; max-width:78ch}
 .st-print, .cal-print{display:none}
 @media print{
   header.top{position:static; background:none}
-  .filters, .statebar, .auth, button.btn, .demo-bar, .fil-actions{display:none !important}
+  .filters, .statebar, .auth, #accesZone, button.btn, .demo-bar, .fil-actions{display:none !important}
   body{background:#fff; font-size:10pt}
   .wrap{max-width:none}
   .act, .kpi, .card, .tbl-scroll, .axe-row, .bar-row, .ind-group{break-inside:avoid; box-shadow:none}
@@ -324,8 +336,8 @@ footer p{margin:0 0 6px; max-width:78ch}
    Laissées vides, la page fonctionne en mode local (un suivi par navigateur).
    ========================================================= */
 window.QHSE_CONFIG = {
-  supabaseUrl: '',      // ex. 'https://abcdefghijkl.supabase.co'
-  supabaseAnonKey: ''   // ex. 'eyJhbGciOi…' ou 'sb_publishable_…'
+  supabaseUrl: 'https://plippuihrvzqfvnxqkim.supabase.co',
+  supabaseAnonKey: 'sb_publishable_2olwFlC9pBNj3KgCKPgWzA_VBA8f_c7'
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -345,6 +357,7 @@ window.QHSE_CONFIG = {
         <button class="btn" type="submit" id="authBtn">Recevoir le lien de connexion</button>
       </form>
       <span class="who" id="authUser" hidden></span>
+      <button class="btn" id="btnGestion" hidden>Gérer la cellule</button>
       <button class="btn" id="btnLogout" hidden>Se déconnecter</button>
       <button class="btn" id="btnCsv">Exporter le suivi (CSV)</button>
       <button class="btn" id="btnDemo">Mode démonstration</button>
@@ -361,6 +374,7 @@ window.QHSE_CONFIG = {
 </div>
 
 <main class="wrap">
+  <div id="accesZone" hidden></div>
 
   <div class="kpis" id="kpis"></div>
 
@@ -904,7 +918,7 @@ function majSync(mode){
     : mode === 'local' ? 'Saisies enregistrées sur ce navigateur seulement'
     : mode === 'lecture' ? 'Consultation seule'
     : mode === 'connexion' ? 'Connectez-vous pour voir et saisir le suivi'
-    : mode === 'nonmembre' ? 'Adresse non autorisée — demandez l’accès au responsable qualité'
+    : mode === 'nonmembre' ? 'Pas encore membre — demandez l’accès ci-dessous'
     : mode === 'erreur' ? 'Échec d’enregistrement — vérifiez la connexion internet'
     : 'Chargement…';
 }
@@ -1511,7 +1525,8 @@ async function ouvrirSession(session){
   if (id === sessionId) return;
   sessionId = id;
   if (canal){ try{ sb.removeChannel(canal); }catch(e){} canal = null; }
-  dbNs = null; lectureSeule = true; viderEtat();
+  dbNs = null; lectureSeule = true; monRole = null; viderEtat();
+  fermerAcces(); document.getElementById('btnGestion').hidden = true;
 
   if (!session){
     utilisateur = null;
@@ -1523,15 +1538,17 @@ async function ouvrirSession(session){
   majSync('chargement');
 
   const {data:role, error:errRole} = await sb.rpc('mon_role');
-  if (errRole || !role){ majSync('nonmembre'); rendre(); return; }
+  monRole = errRole ? null : role;
+  if (!monRole){ majSync('nonmembre'); rendre(); rendreDemandeAcces(); return; }
 
   const {data:lignes, error} = await sb.from('qhse_docs').select('collection,doc_id,data');
   if (error){ majSync('erreur'); rendre(); return; }
   lignes.forEach(recevoir);
 
   dbNs = adaptateurSupabase();
-  lectureSeule = (role !== 'editeur');
-  afficherAuth(true, utilisateur.email + (lectureSeule ? ' · lecteur' : ' · éditeur'));
+  lectureSeule = !(role === 'editeur' || role === 'admin');
+  afficherAuth(true, utilisateur.email + ' · ' + ROLES[role]);
+  if (role === 'admin') majCompteurDemandes();
   majSync(lectureSeule ? 'lecture' : 'partage');
   rendre();
 
@@ -1540,7 +1557,154 @@ async function ouvrirSession(session){
     .subscribe();
 }
 
+/* ---- Embarquement des membres ---- */
+let monRole = null;
+const ROLES = {admin:'administrateur', editeur:'éditeur', lecteur:'lecteur'};
+const zoneAcces = () => document.getElementById('accesZone');
+function fermerAcces(){ const z = zoneAcces(); z.hidden = true; z.innerHTML = ''; }
+function messageRpc(error){
+  if (!error) return '';
+  if (error.code === '42501') return 'Action réservée aux administrateurs de la cellule.';
+  return error.message || 'Erreur inattendue.';
+}
+function dateCourte(iso){ return iso ? frDate(String(iso).slice(0,10)) : ''; }
+
+async function rendreDemandeAcces(){
+  const z = zoneAcces();
+  const {data:enAttente} = await sb.rpc('ma_demande');
+  z.hidden = false;
+  z.innerHTML = `<section class="panneau">
+    <h2>Rejoindre la cellule QHSE</h2>
+    ${enAttente
+      ? `<p>Votre demande d'accès pour <b>${echap(utilisateur.email)}</b> est enregistrée. Un administrateur de la cellule doit la valider ; rechargez ensuite la page.</p>`
+      : `<p>L'adresse <b>${echap(utilisateur.email)}</b> n'est pas encore inscrite. Présentez-vous : un administrateur de la cellule validera votre accès.</p>
+         <form id="formDemande" class="ligne-form">
+           <input id="dNom" placeholder="Prénom et nom" required maxlength="120" autocomplete="name" aria-label="Prénom et nom">
+           <input id="dFonction" placeholder="Fonction au centre (ex. chef de département)" maxlength="120" aria-label="Fonction">
+           <button class="btn" type="submit">Demander l'accès</button>
+         </form>
+         <p class="msg" id="dMsg"></p>`}
+  </section>`;
+  const f = document.getElementById('formDemande');
+  if (!f) return;
+  f.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const {error} = await sb.rpc('demander_acces', {
+      p_nom: document.getElementById('dNom').value,
+      p_fonction: document.getElementById('dFonction').value
+    });
+    if (error){ const m = document.getElementById('dMsg'); m.className = 'msg err'; m.textContent = messageRpc(error); return; }
+    rendreDemandeAcces();
+  });
+}
+
+async function majCompteurDemandes(){
+  const b = document.getElementById('btnGestion');
+  b.hidden = false;
+  const {data} = await sb.rpc('demandes_lister');
+  const n = (data || []).length;
+  b.textContent = 'Gérer la cellule' + (n ? ' (' + n + ' demande' + (n>1?'s':'') + ')' : '');
+}
+
+async function rendreGestion(message, ok){
+  const z = zoneAcces();
+  const [m, d] = await Promise.all([sb.rpc('membres_lister'), sb.rpc('demandes_lister')]);
+  if (m.error || d.error){
+    z.hidden = false;
+    z.innerHTML = `<section class="panneau"><h2>Gérer la cellule</h2><p class="msg err">${echap(messageRpc(m.error || d.error))}</p></section>`;
+    return;
+  }
+  const optRoles = sel => Object.keys(ROLES).map(r=>`<option value="${r}"${r===sel?' selected':''}>${ROLES[r]}</option>`).join('');
+  const moi = utilisateur.email.toLowerCase();
+  z.hidden = false;
+  z.innerHTML = `<section class="panneau">
+    <div class="sec-head" style="margin-bottom:4px"><h2>Gérer la cellule</h2>
+      <div class="note"><button class="btn" data-g="fermer">Fermer</button></div></div>
+    <p>Une personne inscrite ici se connecte avec son adresse e-mail en recevant un lien. Envoyez-lui simplement l'adresse de ce tableau de bord. Les <b>éditeurs</b> saisissent, les <b>lecteurs</b> consultent, les <b>administrateurs</b> saisissent et gèrent la cellule.</p>
+    <p class="msg ${ok?'ok':'err'}" id="gMsg">${message ? echap(message) : ''}</p>
+
+    <h3>Demandes en attente${d.data.length ? ' · ' + d.data.length : ''}</h3>
+    ${d.data.length ? `<div class="tbl-scroll"><table>
+      <thead><tr><th>Personne</th><th>Fonction</th><th>Demandé le</th><th>Rôle accordé</th><th></th></tr></thead>
+      <tbody>${d.data.map(x=>`<tr>
+        <td class="lib">${echap(x.nom||'—')}<span>${echap(x.email)}</span></td>
+        <td>${echap(x.fonction||'—')}</td>
+        <td>${dateCourte(x.demande_le)}</td>
+        <td><select data-role-demande="${echap(x.email)}" aria-label="Rôle à accorder">${optRoles('editeur')}</select></td>
+        <td><div class="btn-row">
+          <button class="btn" data-g="accepter" data-email="${echap(x.email)}" data-nom="${echap(x.nom||'')}">Accepter</button>
+          <button class="btn" data-g="refuser" data-email="${echap(x.email)}">Refuser</button>
+        </div></td></tr>`).join('')}</tbody></table></div>`
+      : '<p>Aucune demande en attente.</p>'}
+
+    <h3>Ajouter directement un membre</h3>
+    <form id="formAjout" class="ligne-form">
+      <input type="email" id="gEmail" placeholder="adresse e-mail" required aria-label="Adresse e-mail du membre">
+      <input id="gNom" placeholder="Nom et fonction" maxlength="120" aria-label="Nom et fonction">
+      <select id="gRole" aria-label="Rôle">${optRoles('editeur')}</select>
+      <button class="btn" type="submit">Ajouter</button>
+    </form>
+
+    <h3>Membres · ${m.data.length}</h3>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Membre</th><th>Rôle</th><th>Inscrit le</th><th></th></tr></thead>
+      <tbody>${m.data.map(x=>{
+        const estMoi = x.email.toLowerCase() === moi;
+        return `<tr>
+          <td class="lib">${echap(x.nom||'—')}<span>${echap(x.email)}${estMoi?' · vous':''}</span></td>
+          <td><select data-role-membre="${echap(x.email)}" ${estMoi?'disabled':''} aria-label="Rôle de ${echap(x.email)}">${optRoles(x.role)}</select></td>
+          <td>${dateCourte(x.ajoute_le)}</td>
+          <td>${estMoi ? '' : `<button class="del" data-g="retirer" data-email="${echap(x.email)}">Retirer</button>`}</td>
+        </tr>`;}).join('')}</tbody></table></div>
+  </section>`;
+  majCompteurDemandes();
+}
+
+async function actionGestion(rpc, args, okMsg){
+  const {error} = await sb.rpc(rpc, args);
+  rendreGestion(error ? messageRpc(error) : okMsg, !error);
+}
+document.addEventListener('click', e=>{
+  if (!sb) return;
+  const b = e.target.closest('#accesZone [data-g]');
+  if (!b) return;
+  e.preventDefault();
+  const g = b.dataset.g, email = b.dataset.email;
+  if (g === 'fermer'){ fermerAcces(); return; }
+  if (g === 'accepter'){
+    const sel = document.querySelector(`select[data-role-demande="${CSS.escape(email)}"]`);
+    actionGestion('membre_enregistrer', {p_email:email, p_nom:b.dataset.nom, p_role:sel ? sel.value : 'editeur'}, email + ' a rejoint la cellule.');
+  }
+  if (g === 'refuser') actionGestion('demande_refuser', {p_email:email}, 'Demande de ' + email + ' refusée.');
+  if (g === 'retirer'){
+    if (b.dataset.arm !== '1'){
+      b.dataset.arm = '1'; b.textContent = 'Confirmer ?';
+      setTimeout(()=>{ if (b.isConnected){ b.dataset.arm = ''; b.textContent = 'Retirer'; } }, 4000);
+      return;
+    }
+    actionGestion('membre_retirer', {p_email:email}, email + ' a été retiré de la cellule.');
+  }
+});
+document.addEventListener('change', e=>{
+  const s = e.target.closest('select[data-role-membre]');
+  if (!s || !sb) return;
+  actionGestion('membre_enregistrer', {p_email:s.dataset.roleMembre, p_nom:null, p_role:s.value},
+    'Rôle de ' + s.dataset.roleMembre + ' : ' + ROLES[s.value] + '.');
+});
+document.addEventListener('submit', e=>{
+  if (e.target.id !== 'formAjout') return;
+  e.preventDefault();
+  const email = document.getElementById('gEmail').value.trim();
+  actionGestion('membre_enregistrer', {
+    p_email:email, p_nom:document.getElementById('gNom').value, p_role:document.getElementById('gRole').value
+  }, email + ' ajouté(e). Envoyez-lui l’adresse du tableau de bord.');
+});
+
 function brancherSupabase(){
+  document.getElementById('btnGestion').addEventListener('click', ()=>{
+    if (!zoneAcces().hidden){ fermerAcces(); return; }
+    rendreGestion();
+  });
   const c = window.QHSE_CONFIG;
   sb = window.supabase.createClient(c.supabaseUrl, c.supabaseAnonKey);
   const form = document.getElementById('authForm');
