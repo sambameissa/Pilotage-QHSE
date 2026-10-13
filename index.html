@@ -1,0 +1,1586 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{color-scheme:light dark}
+  body{margin:0; font:14px system-ui, sans-serif}
+  img{max-width:100%}
+  [hidden]{display:none !important}
+</style>
+<title>Pilotage QHSE Delafosse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@500;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#F2F5F4; --surface:#FFFFFF; --surface-2:#F7FAF9;
+  --ink:#15242A; --ink-2:#4A5D65; --ink-3:#7B8E93;
+  --line:#DBE4E2; --line-strong:#C3D0CD;
+  --accent:#0B6A72; --accent-2:#0E858E; --accent-soft:#E4F0EF;
+  --good:#1F7A52; --good-soft:#E3F2EA;
+  --warn:#9C6410; --warn-soft:#F8EEDC;
+  --crit:#A63B2C; --crit-soft:#F8E7E4;
+  --idle:#6B7C82; --idle-soft:#EDF1F0;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(21,36,42,.06), 0 8px 24px -16px rgba(21,36,42,.25);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0D1416; --surface:#141E21; --surface-2:#182427;
+    --ink:#E8EFED; --ink-2:#A7B8BB; --ink-3:#7C8F93;
+    --line:#26363A; --line-strong:#33474C;
+    --accent:#3FAFA8; --accent-2:#5CC6BE; --accent-soft:#122E30;
+    --good:#54B98A; --good-soft:#12291F;
+    --warn:#D6A343; --warn-soft:#2C2314;
+    --crit:#E0776A; --crit-soft:#2E1A17;
+    --idle:#8A9CA1; --idle-soft:#1B262A;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D1416; --surface:#141E21; --surface-2:#182427;
+  --ink:#E8EFED; --ink-2:#A7B8BB; --ink-3:#7C8F93;
+  --line:#26363A; --line-strong:#33474C;
+  --accent:#3FAFA8; --accent-2:#5CC6BE; --accent-soft:#122E30;
+  --good:#54B98A; --good-soft:#12291F;
+  --warn:#D6A343; --warn-soft:#2C2314;
+  --crit:#E0776A; --crit-soft:#2E1A17;
+  --idle:#8A9CA1; --idle-soft:#1B262A;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px -18px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"Chivo", "Segoe UI", system-ui, sans-serif; text-wrap:balance; margin:0}
+.mono{font-family:"IBM Plex Mono", ui-monospace, monospace}
+.num{font-variant-numeric:tabular-nums}
+
+.wrap{max-width:1180px; margin:0 auto; padding-inline:16px}
+
+/* ---------- En-tête ---------- */
+header.top{
+  position:sticky; top:env(safe-area-inset-top, 0px); z-index:40;
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+}
+.top-in{display:flex; flex-wrap:wrap; gap:12px 20px; align-items:baseline; padding-block:12px}
+.brand{display:flex; flex-direction:column; gap:2px; margin-right:auto}
+h1{font-size:19px; font-weight:700; letter-spacing:-.01em}
+.brand .sub{font-size:12.5px; color:var(--ink-2)}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:2px;
+}
+.statebar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.pill{
+  display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:999px;
+  font-size:11.5px; font-weight:600; border:1px solid var(--line-strong); color:var(--ink-2);
+  background:var(--surface-2); white-space:nowrap;
+}
+.pill.err{color:var(--crit); border-color:color-mix(in srgb, var(--crit) 40%, var(--line)); background:var(--crit-soft)}
+.auth{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+.auth input{font:inherit; font-size:12.5px; color:var(--ink); background:var(--surface); border:1px solid var(--line-strong); border-radius:8px; padding:5px 9px; min-width:200px}
+.who{font-size:12px; color:var(--ink-2)}
+.pill .dot{width:7px; height:7px; border-radius:50%; background:currentColor; flex:none}
+.pill.sync{color:var(--good); border-color:color-mix(in srgb, var(--good) 40%, var(--line)); background:var(--good-soft)}
+.pill.local{color:var(--warn); border-color:color-mix(in srgb, var(--warn) 40%, var(--line)); background:var(--warn-soft)}
+button.btn{
+  font:inherit; font-size:12.5px; font-weight:600; color:var(--ink);
+  background:var(--surface); border:1px solid var(--line-strong); border-radius:8px;
+  padding:5px 11px; cursor:pointer;
+}
+button.btn:hover{border-color:var(--accent); color:var(--accent)}
+button.btn:focus-visible, select:focus-visible, input:focus-visible, .chip:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px;
+}
+
+/* ---------- Bandeau de démonstration ---------- */
+.demo-bar{
+  background:var(--warn-soft); border-bottom:1px solid color-mix(in srgb, var(--warn) 45%, var(--line));
+  color:var(--warn);
+}
+.demo-in{display:flex; gap:14px; align-items:center; flex-wrap:wrap; padding-block:9px; font-size:12.5px}
+.demo-in span{flex:1 1 320px}
+.demo-in b{color:var(--warn)}
+:root[data-demo="1"] .pill.demo{color:var(--warn); border-color:color-mix(in srgb, var(--warn) 45%, var(--line)); background:var(--warn-soft)}
+
+/* ---------- Sections ---------- */
+section{margin-top:34px}
+.sec-head{display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:14px}
+.sec-head h2{font-size:15.5px; font-weight:700; letter-spacing:.005em}
+.sec-head .note{font-size:12.5px; color:var(--ink-3); margin-left:auto; text-align:right}
+.rule{height:1px; background:var(--line); margin:6px 0 16px}
+
+/* ---------- Tuiles de pilotage ---------- */
+.kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:22px}
+.kpi{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px 15px 13px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:7px;
+}
+.kpi .lab{font-size:11.5px; font-weight:600; color:var(--ink-2); letter-spacing:.01em}
+.kpi .val{font-family:"Chivo",sans-serif; font-size:30px; font-weight:700; line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.kpi .val small{font-size:14px; font-weight:500; color:var(--ink-3); margin-left:3px}
+.kpi .cap{font-size:11.5px; color:var(--ink-3)}
+.kpi.alert .val{color:var(--crit)}
+.meter{height:5px; border-radius:3px; background:var(--idle-soft); overflow:hidden}
+.meter > i{display:block; height:100%; border-radius:3px; background:var(--accent)}
+
+/* ---------- Calendrier du dispositif ---------- */
+.cal{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 14px; margin-top:12px; display:flex; flex-direction:column; gap:10px;
+}
+.cal-set{display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:13px}
+.cal-set .hint{font-size:12px; color:var(--ink-3)}
+.cal-per{display:flex; gap:8px; flex-wrap:wrap}
+.cal-per span{
+  font-size:11.5px; border:1px solid var(--line); border-radius:999px;
+  padding:3px 10px; background:var(--surface-2); color:var(--ink-2); white-space:nowrap;
+}
+.cal-per span b{color:var(--ink); font-weight:600}
+.cal-per span.encours{border-color:var(--accent); background:var(--accent-soft)}
+
+/* ---------- Avancement par axe ---------- */
+.axes{display:grid; gap:10px}
+.axe-row{
+  display:grid; grid-template-columns:240px 1fr 96px; gap:14px; align-items:center;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:11px 14px;
+}
+.axe-row .nom{font-weight:600; font-size:13.5px}
+.axe-row .nom span{display:block; font-size:11px; color:var(--ink-3); font-weight:400}
+.axe-row .cnt{font-size:12px; color:var(--ink-2); text-align:right; font-variant-numeric:tabular-nums}
+
+/* ---------- Filtres ---------- */
+.filters{
+  display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:11px 12px; margin-bottom:14px;
+}
+.fgroup{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+.fgroup > .glab{
+  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-3); margin-right:2px;
+}
+.chip{
+  font:inherit; font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px;
+  border:1px solid var(--line-strong); background:var(--surface-2); color:var(--ink-2); cursor:pointer;
+}
+.chip[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+:root[data-theme="dark"] .chip[aria-pressed="true"], :root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#08201F}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .chip[aria-pressed="true"]{color:#fff}}
+input[type="search"], select, input[type="number"]{
+  font:inherit; font-size:13px; color:var(--ink); background:var(--surface);
+  border:1px solid var(--line-strong); border-radius:8px; padding:5px 9px;
+}
+input[type="search"]{min-width:180px; flex:1 1 180px}
+
+/* ---------- Plan d'animations ---------- */
+.plan{display:grid; gap:9px}
+.act{
+  background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--line-strong);
+  border-radius:var(--radius); padding:12px 14px; display:grid; gap:9px;
+  grid-template-columns:minmax(0,1fr) 210px;
+}
+.act.st-realise{border-left-color:var(--good)}
+.act.st-en_cours{border-left-color:var(--accent)}
+.act.st-reporte{border-left-color:var(--warn)}
+.act.late{border-left-color:var(--crit)}
+.act .head{display:flex; flex-wrap:wrap; gap:8px; align-items:baseline}
+.act .code{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--accent); font-weight:500}
+.act .titre{font-weight:600; font-size:14.5px; letter-spacing:-.005em}
+.act .obj{font-size:13px; color:var(--ink-2); max-width:72ch}
+.tags{display:flex; flex-wrap:wrap; gap:6px}
+.tag{
+  font-size:11px; color:var(--ink-2); background:var(--surface-2);
+  border:1px solid var(--line); border-radius:6px; padding:2px 7px;
+}
+.tag b{font-weight:600; color:var(--ink); font-weight:600}
+.tag.date{background:var(--accent-soft); border-color:color-mix(in srgb, var(--accent) 25%, var(--line)); color:var(--ink)}
+.tag.iso{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--accent); background:var(--accent-soft); border-color:color-mix(in srgb, var(--accent) 25%, var(--line))}
+.act .ctrl{display:flex; flex-direction:column; gap:6px; align-items:stretch; justify-content:flex-start}
+.act .ctrl select{width:100%}
+.act .maj{font-size:11px; color:var(--ink-3); text-align:right}
+.badge{
+  display:inline-flex; align-items:center; gap:5px; align-self:flex-end;
+  font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; text-align:right;
+  background:var(--crit-soft); color:var(--crit); border:1px solid color-mix(in srgb, var(--crit) 35%, var(--line));
+}
+.badge.neutre{background:var(--idle-soft); color:var(--idle); border-color:var(--line-strong); font-weight:600}
+.empty{padding:26px; text-align:center; color:var(--ink-3); font-size:13.5px; background:var(--surface); border:1px dashed var(--line-strong); border-radius:var(--radius)}
+
+/* ---------- Indicateurs ---------- */
+.ind-group{margin-bottom:18px}
+.ind-group h3{font-size:13px; font-weight:700; margin-bottom:8px; color:var(--ink); letter-spacing:.005em}
+.tbl-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:760px; font-size:13px}
+th, td{padding:9px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line)}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:500; background:var(--surface-2); position:sticky; top:0;
+}
+tbody tr:last-child td{border-bottom:none}
+td.lib{font-weight:600; max-width:34ch}
+td.lib span{display:block; font-weight:400; font-size:12px; color:var(--ink-3); margin-top:2px}
+td.cible, td.val{font-variant-numeric:tabular-nums; white-space:nowrap}
+td.val input{width:84px; text-align:right}
+.etat{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:6px; white-space:nowrap}
+.etat.ok{background:var(--good-soft); color:var(--good)}
+.etat.warn{background:var(--warn-soft); color:var(--warn)}
+.etat.crit{background:var(--crit-soft); color:var(--crit)}
+.etat.none{background:var(--idle-soft); color:var(--idle)}
+
+/* ---------- Filières ---------- */
+.fil-sum{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px}
+.fil-actions{display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap}
+.fil-actions .hint{font-size:12px; color:var(--ink-3)}
+td.fil-nom input{width:230px; text-align:left}
+td.num-in input{width:70px; text-align:right}
+td.niv select{width:142px}
+.taux{font-weight:700; font-variant-numeric:tabular-nums}
+.delta{font-size:11.5px; color:var(--ink-3); display:block; font-weight:400}
+.calc{font-size:11.5px; color:var(--ink-3); display:block}
+button.del{
+  font:inherit; font-size:12px; color:var(--ink-3); background:none; border:1px solid var(--line);
+  border-radius:6px; padding:3px 8px; cursor:pointer; white-space:nowrap;
+}
+button.del:hover{color:var(--crit); border-color:var(--crit)}
+button.del[data-arm="1"]{color:var(--crit); border-color:var(--crit); background:var(--crit-soft)}
+.bars{display:grid; gap:9px; margin-top:20px}
+.bar-row{display:grid; grid-template-columns:250px 1fr 132px; gap:14px; align-items:center; font-size:12.5px}
+.bar-row .nomf{font-weight:600}
+.bar-row .nomf span{color:var(--ink-3); font-weight:400}
+.bar-row .vals{text-align:right; font-variant-numeric:tabular-nums; color:var(--ink-2)}
+.barwrap{position:relative; height:10px; border-radius:5px; background:var(--idle-soft)}
+.barwrap > i{display:block; height:100%; border-radius:5px; background:var(--accent)}
+.barwrap > u{position:absolute; top:-4px; bottom:-4px; width:2px; background:var(--ink-2); text-decoration:none}
+@media (max-width:860px){
+  .fil-sum{grid-template-columns:repeat(2,1fr)}
+  .bar-row{grid-template-columns:1fr; gap:5px}
+  .bar-row .vals{text-align:left}
+}
+@media (max-width:430px){ .fil-sum{grid-template-columns:1fr} }
+
+/* ---------- ISO + gouvernance ---------- */
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px 15px}
+.card h3{font-size:13px; font-weight:700; margin-bottom:6px}
+.card p{margin:0 0 8px; font-size:13px; color:var(--ink-2)}
+.card ul{margin:0; padding-left:17px; font-size:13px; color:var(--ink-2)}
+.card li{margin-bottom:4px}
+.card .codes{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--accent); margin-top:8px; display:block}
+
+footer{margin:40px 0 24px; font-size:12px; color:var(--ink-3); border-top:1px solid var(--line); padding-top:14px}
+footer p{margin:0 0 6px; max-width:78ch}
+
+@media (max-width:860px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .act{grid-template-columns:1fr}
+  .act .ctrl{flex-direction:row; align-items:center; flex-wrap:wrap}
+  .act .ctrl select{width:auto; flex:1 1 150px}
+  .act .maj{text-align:left}
+  .axe-row{grid-template-columns:1fr; gap:7px}
+  .axe-row .cnt{text-align:left}
+}
+@media (max-width:430px){
+  .kpis{grid-template-columns:1fr}
+}
+.st-print, .cal-print{display:none}
+@media print{
+  header.top{position:static; background:none}
+  .filters, .statebar, .auth, button.btn, .demo-bar, .fil-actions{display:none !important}
+  body{background:#fff; font-size:10pt}
+  .wrap{max-width:none}
+  .act, .kpi, .card, .tbl-scroll, .axe-row, .bar-row, .ind-group{break-inside:avoid; box-shadow:none}
+  section{margin-top:18px}
+  .act{padding:7px 10px; gap:4px; grid-template-columns:minmax(0,1fr) 150px}
+  .act .titre{font-size:11.5pt}
+  .act .obj{font-size:9pt; max-width:none}
+  .tag, .tag.iso{font-size:8pt; padding:1px 5px}
+  .act .maj{display:none}
+  .act .ctrl select{display:none}
+  .st-print{display:inline-block; font-size:9pt; font-weight:700; color:#000}
+  .cal-per span{font-size:8.5pt}
+  table{min-width:0 !important; font-size:8.5pt}
+  th, td{padding:4px 6px}
+  button.del{display:none}
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .kpi .val{font-size:22pt}
+  footer{font-size:8.5pt}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+</style>
+
+<script>
+/* =========================================================
+   CONFIGURATION — à renseigner une seule fois (voir README)
+   Supabase > Project Settings > API : « Project URL » et clé « anon / publishable ».
+   Ces deux valeurs sont publiques par nature : la sécurité repose sur les
+   règles d'accès (RLS) créées par supabase-setup.sql, pas sur leur secret.
+   Laissées vides, la page fonctionne en mode local (un suivi par navigateur).
+   ========================================================= */
+window.QHSE_CONFIG = {
+  supabaseUrl: '',      // ex. 'https://abcdefghijkl.supabase.co'
+  supabaseAnonKey: ''   // ex. 'eyJhbGciOi…' ou 'sb_publishable_…'
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand">
+      <div class="eyebrow">Cellule QHSE · CFPC Maurice Delafosse · Version en ligne</div>
+      <h1>Pilotage QHSE &amp; animation de la qualité</h1>
+      <div class="sub">Année scolaire 2026-2027 · dispositif aligné sur ISO 21001 (management des organismes d'éducation/formation)</div>
+    </div>
+    <div class="statebar">
+      <span class="pill" id="etatSync"><span class="dot"></span><span id="etatSyncTxt">Chargement…</span></span>
+      <form id="authForm" class="auth" hidden>
+        <input type="email" id="authEmail" placeholder="votre adresse e-mail" required autocomplete="email" aria-label="Adresse e-mail">
+        <button class="btn" type="submit" id="authBtn">Recevoir le lien de connexion</button>
+      </form>
+      <span class="who" id="authUser" hidden></span>
+      <button class="btn" id="btnLogout" hidden>Se déconnecter</button>
+      <button class="btn" id="btnCsv">Exporter le suivi (CSV)</button>
+      <button class="btn" id="btnDemo">Mode démonstration</button>
+      <button class="btn" id="btnPrint">Imprimer</button>
+    </div>
+  </div>
+</header>
+
+<div class="demo-bar" id="demoBar" hidden>
+  <div class="wrap demo-in">
+    <span><b>Mode démonstration</b> — chiffres fictifs, photographie simulée au 15 janvier 2027. Rien n'est enregistré, et aucun membre de la cellule ne voit ces valeurs.</span>
+    <button class="btn" id="btnDemoOff">Quitter la démonstration</button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="cal">
+    <div class="cal-set">
+      <label for="dateDem"><b>Démarrage du dispositif</b></label>
+      <input type="date" id="dateDem" value="2026-10-15" aria-label="Date de démarrage du dispositif">
+      <span class="cal-print" id="calPrint"></span>
+      <span class="hint" id="calHint"></span>
+    </div>
+    <div class="cal-per" id="calPer"></div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>Avancement du plan par axe</h2>
+      <div class="note">Part des activités marquées « réalisé »</div>
+    </div>
+    <div class="axes" id="axes"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Plan d'animations 2026-2027</h2>
+      <div class="note" id="planCount"></div>
+    </div>
+    <div class="filters">
+      <div class="fgroup" id="fAxes"><span class="glab">Axe</span></div>
+      <div class="fgroup" id="fPer"><span class="glab">Période</span></div>
+      <div class="fgroup">
+        <span class="glab">Statut</span>
+        <select id="fStatut" aria-label="Filtrer par statut">
+          <option value="">Tous</option>
+          <option value="a_lancer">À lancer</option>
+          <option value="en_cours">En cours</option>
+          <option value="realise">Réalisé</option>
+          <option value="reporte">Reporté</option>
+        </select>
+      </div>
+      <input type="search" id="fTexte" placeholder="Rechercher une activité, un pilote…" aria-label="Rechercher">
+    </div>
+    <div class="plan" id="plan"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Résultats par filière</h2>
+      <div class="note">Offre de formation 2026-2027 d'après la plaquette du centre · CAP, BT, BTS et BTS APC</div>
+    </div>
+    <div class="fil-sum" id="filSum"></div>
+    <div class="tbl-scroll" id="filTable"></div>
+    <div class="fil-actions">
+      <button class="btn" id="btnAddFil">Ajouter une filière</button>
+      <span class="hint">Présentés = candidats de l'année terminale. Pour comparer cours du jour et cours du soir, dédoublez la ligne et choisissez le régime de chacune.</span>
+    </div>
+    <div class="bars" id="filBars"></div>
+    <div class="sec-head" style="margin-top:26px">
+      <h3 style="font-size:13px; font-weight:700">Insertion des sortants à six mois — cohorte précédente</h3>
+    </div>
+    <div class="tbl-scroll" id="insTable"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Matrice des indicateurs</h2>
+      <div class="note">Saisissez le dernier relevé : l'écart à la cible se calcule seul</div>
+    </div>
+    <div id="indicateurs"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Alignement ISO 21001</h2></div>
+    <div class="rule"></div>
+    <div class="cards" id="iso"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Gouvernance et rituels de la cellule</h2></div>
+    <div class="rule"></div>
+    <div class="cards" id="gouv"></div>
+  </section>
+
+  <footer>
+    <p><b>Version en ligne.</b> Les saisies sont enregistrées dans une base partagée et apparaissent en direct chez tous les membres connectés. L'accès est réservé aux adresses e-mail inscrites par le responsable qualité : on se connecte en recevant un lien par e-mail, sans mot de passe. Les membres « éditeurs » peuvent saisir ; les membres « lecteurs » (direction, tutelle) consultent seulement. Chaque modification est horodatée et attribuée à son auteur. Le bouton d'export produit un fichier CSV lisible dans Excel, à archiver comme preuve à chaque revue de direction.</p>
+    <p><b>Mode d'emploi.</b> Le tableau de bord est livré sans données de performance : les statuts et les relevés sont à saisir par la cellule. Chaque saisie est enregistrée dès qu'on quitte le champ et visible par les autres membres connectés ; le bandeau en haut indique si l'enregistrement est partagé, en consultation seule, ou en échec.</p>
+    <p><b>Mode démonstration.</b> Le bouton du bandeau supérieur remplit la page de chiffres fictifs, comme si l'on était au 15 janvier 2027 : statuts, retards, indicateurs et résultats par filière. Rien n'est enregistré, aucun autre membre ne voit ces valeurs, et « Quitter la démonstration » rend la page à son état réel. C'est le mode à utiliser pour présenter l'outil en séance avant de le partager.</p>
+    <p><b>Journées mondiales.</b> Onze dates internationales sont adossées au plan, chacune portée par un service et assortie d'un livrable. Elles ne s'ajoutent pas au travail de la cellule : elles lui donnent un calendrier et un prétexte public. La journée mondiale de la qualité du 12 novembre et celle de la sécurité et de la santé au travail du 28 avril sont les deux temps forts de l'année ; les autres se préparent en une heure de réunion.</p>
+    <p><b>Suivi par filière.</b> La liste reprend l'offre de formation de la plaquette du centre : CAP dactylographie et aide-comptable, BT bureautique et comptabilité, BTS bureautique, comptabilité, transport logistique, commerce international et AGE, BTS APC transit et GCAL. Chaque ligne peut être renommée, dédoublée par régime de cours ou retirée. Le taux de réussite, le taux d'abandon et le taux d'insertion se calculent à partir des effectifs saisis, et trois indicateurs de la matrice — réussite aux examens, assiduité, insertion à six mois — en découlent directement au lieu d'être saisis à la main.</p>
+    <p><b>Date de démarrage.</b> Le dispositif ne commence qu'à l'approbation de la direction : la date portée en haut de page fixe ce départ, et les cinq périodes — lancement de six semaines, trois trimestres, bilan — se recalculent à partir d'elle. Si l'approbation glisse, changez la date : toutes les échéances suivent, ainsi que les liserés de retard. Seules les journées mondiales gardent leur date propre, puisqu'elles ne se déplacent pas ; celles qui tombent avant le démarrage sont signalées comme telles et ne comptent pas comme des retards.</p>
+    <p><b>Repères de calcul.</b> Une activité est signalée « en retard » lorsque son échéance est dépassée et que son statut n'est pas « réalisé ». Un indicateur est vert s'il atteint la cible, orange s'il s'en écarte de moins de 10 %, rouge au-delà. Les cibles proposées sont des points de départ : elles doivent être arbitrées en revue de direction au regard des résultats de l'année précédente.</p>
+  </footer>
+</main>
+
+<script>
+/* =========================================================
+   Données de référence : axes, périodes, plan, indicateurs
+   ========================================================= */
+const AXES = [
+  {id:'PIL', nom:'Pilotage du dispositif',      desc:'Cellule, processus, risques, audits'},
+  {id:'QE',  nom:'Qualité des enseignements',   desc:'Pédagogie, formateurs, apprenants'},
+  {id:'AD',  nom:'Processus administratifs',    desc:'Scolarité, finances, données, usagers'},
+  {id:'HSE', nom:'Hygiène, sécurité, environnement', desc:'Locaux, cours du soir, visites de site'},
+  {id:'VIS', nom:'Visibilité et partenariats',  desc:'Événements, communication, entreprises'},
+  {id:'EVT', nom:'Journées mondiales et temps forts', desc:'Dates internationales adossées au plan'}
+];
+
+/* Les périodes se calculent à partir de la date de démarrage : seules leurs durées sont fixes. */
+const PERIODES = [
+  {id:'P0', court:'Lancement', base:'Lancement du dispositif',            semaines:6},
+  {id:'T1', court:'T1',        base:'Premier trimestre',                  semaines:13},
+  {id:'T2', court:'T2',        base:'Deuxième trimestre',                 semaines:13},
+  {id:'T3', court:'T3',        base:'Troisième trimestre',                semaines:10},
+  {id:'BL', court:'Bilan',     base:'Bilan et plan de l\'année suivante', semaines:4},
+  {id:'CO', court:'Continu',   base:'En continu sur l\'année',            semaines:0}
+];
+const DEMARRAGE_DEFAUT = '2026-10-15';
+const MOIS_FR = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+
+function ajoutJours(iso, n){
+  const d = new Date(iso + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+function frDate(iso){
+  if (!iso) return '';
+  const [a, m, j] = iso.split('-');
+  return Number(j) + ' ' + MOIS_FR[Number(m) - 1] + ' ' + a;
+}
+function bornes(){
+  const b = {};
+  let curseur = demarrage;
+  PERIODES.forEach(p=>{
+    if (p.id === 'CO'){ b[p.id] = {debut:demarrage, fin:null, libelle:p.base}; return; }
+    const debut = curseur;
+    const fin = ajoutJours(debut, p.semaines * 7 - 1);
+    b[p.id] = {debut:debut, fin:fin, libelle:p.base + ' · ' + frDate(debut) + ' – ' + frDate(fin)};
+    curseur = ajoutJours(fin, 1);
+  });
+  return b;
+}
+
+const STATUTS = {
+  a_lancer:{lib:'À lancer', ord:0},
+  en_cours:{lib:'En cours', ord:1},
+  realise :{lib:'Réalisé',  ord:2},
+  reporte :{lib:'Reporté',  ord:3}
+};
+
+const ACTIVITES = [
+  // ---- Pilotage
+  {c:'PIL-01', ax:'PIL', per:'P0', t:"Installation officielle de la cellule QHSE",
+   o:"Formaliser l'existence de la cellule : note de service, lettre de mission, référents désignés par département et par atelier.",
+   pil:'Direction du centre', liv:"Note de service + organigramme QHSE affiché", iso:'§5.3'},
+  {c:'PIL-02', ax:'PIL', per:'P0', t:"Cartographie des processus du centre",
+   o:"Distinguer processus de pilotage, de réalisation (formation) et de support, et rédiger une fiche par processus : finalité, pilote, entrées/sorties, indicateurs.",
+   pil:'Responsable qualité', liv:"Cartographie + fiches de processus", iso:'§4.4'},
+  {c:'PIL-03', ax:'PIL', per:'T1', t:"Analyse du contexte et des parties intéressées",
+   o:"Recenser les attentes des apprenants, familles, entreprises partenaires, tutelle, 3FPT et personnel, puis en déduire les enjeux internes et externes du centre.",
+   pil:'Cellule QHSE', liv:"Matrice des parties intéressées + analyse AFOM", iso:'§4.1 / 4.2'},
+  {c:'PIL-04', ax:'PIL', per:'T1', t:"Cartographie des risques et opportunités",
+   o:"Coter chaque risque (pédagogique, administratif, sécurité, financier, image) en probabilité et gravité, puis arrêter un plan de traitement hiérarchisé.",
+   pil:'Cellule QHSE', liv:"Registre des risques + plan de traitement", iso:'§6.1'},
+  {c:'PIL-05', ax:'PIL', per:'T1', t:"Politique qualité et objectifs annuels",
+   o:"Rédiger une politique signée par le directeur, la décliner en objectifs mesurables par département et la diffuser à tout le personnel.",
+   pil:'Direction du centre', liv:"Politique qualité affichée + objectifs par département", iso:'§5.2 / 6.2'},
+  {c:'PIL-06', ax:'PIL', per:'CO', t:"Revue de direction semestrielle",
+   o:"Deux revues (janvier, juillet) à ordre du jour normalisé : performance des processus, retours des apprenants, non-conformités, ressources, décisions.",
+   pil:'Direction du centre', liv:"Relevé de décisions daté et diffusé", iso:'§9.3'},
+  {c:'PIL-07', ax:'PIL', per:'T2', t:"Audit interne croisé (deux vagues)",
+   o:"Former une équipe d'auditeurs internes et auditer chaque département par un pair d'un autre département, en mars puis en juin.",
+   pil:'Responsable qualité', liv:"Programme d'audit + rapports par processus", iso:'§9.2'},
+  {c:'PIL-08', ax:'PIL', per:'CO', t:"Registre des non-conformités et actions correctives",
+   o:"Ouvrir une fiche pour chaque écart constaté (audit, réclamation, incident), en désigner le responsable et suivre la date de clôture.",
+   pil:'Responsable qualité', liv:"Registre NC + fiches d'action correctives", iso:'§10.2'},
+  {c:'PIL-09', ax:'PIL', per:'BL', t:"Bilan annuel QHSE et plan d'animations N+1",
+   o:"Consolider les indicateurs de l'année, tirer les enseignements du plan et arrêter le programme de l'année scolaire suivante avant la rentrée.",
+   pil:'Cellule QHSE', liv:"Rapport annuel QHSE + plan 2027-2028", iso:'§9.3 / 10.3'},
+
+  // ---- Qualité des enseignements
+  {c:'QE-01', ax:'QE', per:'P0', t:"Harmonisation des progressions pédagogiques",
+   o:"Réunir les conseils d'enseignement par filière pour caler les progressions sur les référentiels de certification et le volume horaire réel.",
+   pil:'Chefs de département', liv:"Progressions validées et diffusées aux apprenants", iso:'§8.3'},
+  {c:'QE-02', ax:'QE', per:'CO', t:"Évaluation des enseignements par les apprenants",
+   o:"Deux vagues d'enquête anonyme (décembre, mai) sur la clarté des cours, la disponibilité des équipements et l'accompagnement, avec restitution individuelle aux formateurs.",
+   pil:'Responsable qualité', liv:"Rapport d'enquête + restitutions", iso:'§9.1'},
+  {c:'QE-03', ax:'QE', per:'T2', t:"Visites de classe et observation croisée entre formateurs",
+   o:"Mettre en place une grille d'observation partagée et organiser des binômes d'observation, suivis d'un entretien de retour bienveillant.",
+   pil:'Chefs de département', liv:"Grille d'observation + comptes rendus de visite", iso:'§7.2'},
+  {c:'QE-04', ax:'QE', per:'T2', t:"Plan de développement des compétences des formateurs",
+   o:"Recenser les besoins, puis organiser des sessions courtes : approche par compétences, évaluation, numérique éducatif, sécurité en atelier.",
+   pil:'Direction du centre', liv:"Plan de formation + feuilles de présence", iso:'§7.2'},
+  {c:'QE-05', ax:'QE', per:'CO', t:"Conseils de classe et dispositif de remédiation",
+   o:"À chaque fin de trimestre, repérer les apprenants en difficulté, décider d'un tutorat ou d'un soutien ciblé et en vérifier l'effet au trimestre suivant.",
+   pil:'Surveillant général', liv:"PV de conseils + liste des apprenants suivis", iso:'§8.5'},
+  {c:'QE-06', ax:'QE', per:'T2', t:"Olympiades internes des métiers",
+   o:"Mettre en compétition les apprenants par filière sur une réalisation notée par un jury mixte formateurs/entreprises : valorisation du geste professionnel et évaluation externe des acquis.",
+   pil:'Chefs de département', liv:"Règlement, grilles de jury, palmarès", iso:'§8.5'},
+  {c:'QE-07', ax:'QE', per:'T2', t:"Semaine de l'excellence pédagogique",
+   o:"Classes ouvertes, partage de pratiques entre formateurs et ateliers méthodologiques pour les apprenants (prise de notes, préparation d'examen).",
+   pil:'Cellule QHSE', liv:"Programme + bilan de participation", iso:'§7.2'},
+  {c:'QE-08', ax:'QE', per:'CO', t:"Mise à niveau des équipements et supports pédagogiques",
+   o:"Inventorier les postes informatiques, les logiciels de comptabilité et de gestion et les supports de travaux pratiques ; actualiser les fiches de TP et signaler les matériels hors service au service financier.",
+   pil:'Chefs de département', liv:"Inventaire pédagogique + fiches TP à jour", iso:'§7.1'},
+  {c:'QE-09', ax:'QE', per:'T3', t:"Enquête d'insertion des sortants (cohorte précédente)",
+   o:"Interroger les diplômés six mois après la sortie : emploi, auto-emploi, poursuite d'études, adéquation de la formation au poste occupé.",
+   pil:'Conseiller en orientation', liv:"Rapport d'insertion par filière", iso:'§9.1'},
+  {c:'QE-10', ax:'QE', per:'CO', t:"Encadrement des stages en entreprise",
+   o:"Systématiser la convention, le livret de stage, la visite de suivi et la soutenance, et exploiter les appréciations des maîtres de stage.",
+   pil:'Chargé des relations entreprises', liv:"Livret de stage + rapports de visite", iso:'§8.4 / 8.5'},
+
+  // ---- Processus administratifs
+  {c:'AD-01', ax:'AD', per:'T1', t:"Formalisation des procédures administratives clés",
+   o:"Décrire sous forme de logigramme l'inscription, la délivrance de documents de scolarité, l'organisation des examens et la commande de fournitures, avec un délai cible par étape.",
+   pil:'Secrétaire général', liv:"Manuel de procédures (4 procédures prioritaires)", iso:'§7.5'},
+  {c:'AD-02', ax:'AD', per:'T1', t:"Charte d'accueil et signalétique des services",
+   o:"Afficher à l'entrée de chaque service l'interlocuteur, les horaires, les pièces à fournir et le délai de traitement annoncé.",
+   pil:'Secrétaire général', liv:"Charte d'accueil + signalétique posée", iso:'§7.4'},
+  {c:'AD-03', ax:'AD', per:'T1', t:"Dispositif de réclamations et de suggestions",
+   o:"Ouvrir un registre et une boîte à suggestions accessibles aux apprenants et au personnel, avec un délai de réponse de dix jours ouvrés et un examen mensuel en cellule.",
+   pil:'Responsable qualité', liv:"Registre des réclamations + tableau de suivi", iso:'§8.2 / 10.2'},
+  {c:'AD-04', ax:'AD', per:'T2', t:"Dématérialisation et archivage du dossier apprenant",
+   o:"Arrêter un plan de classement unique, numériser les dossiers de l'année en cours et mettre en place une sauvegarde hebdomadaire hors site.",
+   pil:'Service scolarité', liv:"Plan de classement + procédure de sauvegarde", iso:'§7.5'},
+  {c:'AD-05', ax:'AD', per:'CO', t:"Suivi mensuel de l'exécution budgétaire",
+   o:"Rapprocher chaque mois prévisions, engagements et paiements, et présenter l'état d'exécution en comité de pilotage : la qualité du service dépend de la disponibilité effective des crédits.",
+   pil:'Service financier', liv:"État d'exécution mensuel commenté", iso:'§7.1'},
+  {c:'AD-06', ax:'AD', per:'CO', t:"Fiabilisation des données statistiques du centre",
+   o:"Arrêter une définition unique des effectifs, de l'assiduité et des résultats, et produire un jeu de données trimestriel unique servant à tous les rapports.",
+   pil:'Service scolarité', liv:"Tableau statistique trimestriel de référence", iso:'§9.1'},
+  {c:'AD-07', ax:'AD', per:'T3', t:"Enquête de satisfaction des usagers et du personnel",
+   o:"Mesurer la perception de l'accueil, des délais, de la propreté et de la circulation de l'information, et publier les trois engagements d'amélioration retenus.",
+   pil:'Responsable qualité', liv:"Rapport d'enquête + engagements publiés", iso:'§9.1'},
+  {c:'AD-08', ax:'AD', per:'T2', t:"Évaluation des prestataires externes",
+   o:"Évaluer restauration, gardiennage, entretien et maintenance sur une grille commune (qualité, délais, sécurité) avant reconduction des contrats.",
+   pil:'Service financier', liv:"Grille d'évaluation renseignée par prestataire", iso:'§8.4'},
+
+  // ---- Hygiène, sécurité, environnement
+  {c:'HSE-01', ax:'HSE', per:'T1', t:"Diagnostic HSE des locaux du centre",
+   o:"Passer chaque local à une grille unique : salles de cours, laboratoires informatiques, bureaux, sanitaires, circulations et escaliers — électricité, éclairage, issues de secours, encombrement ; coter et photographier les écarts.",
+   pil:'Référent HSE', liv:"Rapport de diagnostic + registre des écarts", iso:'§7.1 / 8.1'},
+  {c:'HSE-02', ax:'HSE', per:'T1', t:"Document unique d'évaluation des risques professionnels",
+   o:"Identifier les risques par poste et par local — travail sur écran, manipulation électrique, ambiance thermique, déplacements, cours du soir — les hiérarchiser et arrêter les mesures de prévention.",
+   pil:'Référent HSE', liv:"Document unique validé par la direction", iso:'§6.1'},
+  {c:'HSE-03', ax:'HSE', per:'CO', t:"Encadrement HSE des visites d'entreprise et de site",
+   o:"Pour les sorties des filières transit, logistique et GCAL sur les terminaux portuaires et les entrepôts : autorisation écrite, consigne de sécurité avant départ, équipements de protection fournis par le site ou par le centre, encadrant désigné, compte rendu au retour.",
+   pil:'Chargé des relations entreprises', liv:"Fiche de visite : autorisation, consigne, émargements, compte rendu", iso:'§8.1 / 8.4'},
+  {c:'HSE-04', ax:'HSE', per:'CO', t:"Plan d'évacuation et exercices incendie",
+   o:"Afficher les plans et consignes par niveau, puis conduire deux exercices chronométrés — dont un pendant les cours du soir, où l'évacuation se fait de nuit — avec rapport d'observation.",
+   pil:'Référent HSE', liv:"Plans affichés + rapports d'exercice", iso:'§8.1'},
+  {c:'HSE-05', ax:'HSE', per:'T2', t:"Premiers secours et trousses de soins",
+   o:"Constituer et former une équipe de première intervention mêlant personnel et apprenants, couvrant aussi les créneaux du soir et du samedi, et vérifier mensuellement la dotation des trousses de secours.",
+   pil:'Référent HSE', liv:"Liste des secouristes formés + attestations + contrôle des trousses", iso:'§7.2'},
+  {c:'HSE-06', ax:'HSE', per:'CO', t:"Vérifications périodiques des installations",
+   o:"Programmer et tracer les contrôles : installation électrique et tableaux, extincteurs, éclairage de sécurité, groupe électrogène et son stockage de carburant, climatiseurs, ascenseur le cas échéant.",
+   pil:'Service technique', liv:"Registre de sécurité tenu à jour", iso:'§8.1'},
+  {c:'HSE-07', ax:'HSE', per:'CO', t:"Contrôle mensuel de l'hygiène des locaux et de l'eau",
+   o:"Passer sanitaires, points d'eau de boisson, salles et espace de restauration — y compris les vendeurs admis dans l'enceinte — à une grille de propreté notée, et traiter les écarts avec le prestataire d'entretien.",
+   pil:'Cellule QHSE', liv:"Grilles mensuelles + suite donnée", iso:'§8.1'},
+  {c:'HSE-08', ax:'HSE', per:'T2', t:"Gestion des déchets et des équipements électroniques",
+   o:"Organiser la collecte du papier, des cartouches et toners, des piles et des postes informatiques hors service ; contractualiser une filière d'enlèvement des déchets d'équipements électriques et électroniques plutôt que le stockage en réserve.",
+   pil:'Référent HSE', liv:"Plan de tri + bordereaux d'enlèvement", iso:'§8.1'},
+  {c:'HSE-09', ax:'HSE', per:'T2', t:"Sécurité électrique des salles informatiques",
+   o:"Recenser prises, multiprises en cascade, rallonges et onduleurs salle par salle ; vérifier la charge des circuits, supprimer les branchements de fortune et fixer une règle d'usage affichée dans chaque laboratoire.",
+   pil:'Service technique', liv:"État des lieux électrique + mises en conformité datées", iso:'§8.1 / 10.3'},
+  {c:'HSE-10', ax:'HSE', per:'T1', t:"Sensibilisation sécurité de rentrée",
+   o:"Séance obligatoire pour tout nouvel entrant, en cours du jour comme du soir : consignes d'évacuation, circulation dans l'établissement, usage du matériel informatique, sécurité routière aux abords, conduite à tenir en cas d'incident.",
+   pil:'Surveillant général', liv:"Support de séance + émargements", iso:'§7.4'},
+  {c:'HSE-11', ax:'HSE', per:'T3', t:"Journée verte : arbres et espaces du centre",
+   o:"Préparer en juin les plantations de l'hivernage, entretenir les espaces verts et associer les apprenants à l'entretien durable des plants.",
+   pil:'Cellule QHSE', liv:"Plan de plantation + suivi de reprise des plants", iso:'§6.2'},
+  {c:'HSE-12', ax:'HSE', per:'T1', t:"Sécurité des cours du soir et de la sortie nocturne",
+   o:"Le centre enseigne jusqu'à 20 h 30 du lundi au vendredi et le samedi jusqu'à 17 h : contrôler chaque mois l'éclairage des salles, des escaliers et des circulations, l'éclairage de secours, la signalisation des issues, le contrôle d'accès en soirée, et organiser la sortie groupée avec éclairage des abords immédiats.",
+   pil:'Surveillant général', liv:"Grille mensuelle de contrôle du soir + mesures prises", iso:'§7.1'},
+  {c:'HSE-13', ax:'HSE', per:'P0', t:"Registre des accidents, incidents et presque-accidents",
+   o:"Ouvrir et tenir un registre unique consignant chaque événement à sa date : nature, lieu, personne concernée, soins donnés, cause, mesure prise. Les presque-accidents y figurent : ce sont eux qui annoncent l'accident.",
+   pil:'Référent HSE', liv:"Registre tenu + analyse mensuelle en cellule", iso:'§9.1 / 10.2'},
+
+  // ---- Visibilité et partenariats
+  {c:'VIS-01', ax:'VIS', per:'T3', t:"Journée portes ouvertes",
+   o:"Ouvrir les ateliers aux élèves de troisième, aux familles et aux entreprises : démonstrations, mini-ateliers, stand d'orientation et d'inscription.",
+   pil:'Chargé de communication', liv:"Programme, registre des visiteurs, bilan", iso:'§7.4'},
+  {c:'VIS-02', ax:'VIS', per:'CO', t:"Animation des supports numériques du centre",
+   o:"Tenir un calendrier éditorial mensuel (réalisations d'apprenants, résultats, vie du centre) et répondre aux messages sous 48 heures.",
+   pil:'Chargé de communication', liv:"Calendrier éditorial + statistiques de portée", iso:'§7.4'},
+  {c:'VIS-03', ax:'VIS', per:'T3', t:"Forum entreprises et job dating",
+   o:"Réunir les entreprises partenaires pour des entretiens courts avec les futurs sortants : stages, apprentissage, premiers emplois.",
+   pil:'Chargé des relations entreprises', liv:"Liste des entreprises + contrats/stages issus du forum", iso:'§4.2'},
+  {c:'VIS-04', ax:'VIS', per:'T2', t:"Exposition des travaux d'apprenants",
+   o:"Exposer dans le hall les meilleures réalisations d'atelier avec fiche technique, nom de l'auteur et filière, renouvelée chaque trimestre.",
+   pil:'Chefs de département', liv:"Espace d'exposition + fiches des pièces", iso:'§7.4'},
+  {c:'VIS-05', ax:'VIS', per:'CO', t:"Lettre d'information trimestrielle",
+   o:"Une page recto-verso diffusée au personnel, aux partenaires et à la tutelle : avancement du plan QHSE, résultats, événements à venir.",
+   pil:'Chargé de communication', liv:"Trois numéros dans l'année", iso:'§7.4'},
+  {c:'VIS-06', ax:'VIS', per:'CO', t:"Conventions de partenariat",
+   o:"Formaliser les coopérations avec les entreprises, les collectivités et les organismes de financement de la formation professionnelle, et en suivre l'exécution.",
+   pil:'Direction du centre', liv:"Conventions signées + tableau de suivi", iso:'§4.2 / 8.4'},
+  {c:'VIS-07', ax:'VIS', per:'CO', t:"Affichage public des indicateurs QHSE",
+   o:"Mettre à jour chaque mois un panneau dans le hall : avancement du plan, sécurité, assiduité, réclamations traitées. La transparence interne est le premier levier de crédibilité externe.",
+   pil:'Cellule QHSE', liv:"Panneau mis à jour mensuellement", iso:'§7.4'},
+  {c:'VIS-08', ax:'VIS', per:'CO', t:"Couverture média des événements du centre",
+   o:"Préparer un dossier de presse court par événement et inviter presse écrite, radios et web : visibilité au moment des inscriptions.",
+   pil:'Chargé de communication', liv:"Dossiers de presse + revue des retombées", iso:'§7.4'},
+  {c:'VIS-09', ax:'VIS', per:'T2', t:"Réseau des anciens du centre",
+   o:"Constituer un annuaire des sortants, les inviter à témoigner devant les promotions et les mobiliser pour l'accueil de stagiaires.",
+   pil:'Conseiller en orientation', liv:"Annuaire des anciens + calendrier de témoignages", iso:'§4.2'},
+
+  // ---- Journées mondiales et temps forts
+  {c:'EVT-01', ax:'EVT', per:'T1', d:'Lundi 5 octobre 2026', dISO:'2026-10-05', t:"Journée mondiale des enseignants",
+   o:"Mettre à l'honneur les formateurs du centre : témoignages d'anciens sur un enseignant marquant, café pédagogique, remise des attestations de formation suivies dans l'année.",
+   pil:'Direction du centre', liv:"Programme de la journée + album photographique", iso:'§7.2'},
+  {c:'EVT-02', ax:'EVT', per:'T1', d:'Mercredi 14 octobre 2026', dISO:'2026-10-14', t:"Journée mondiale de la normalisation",
+   o:"Séance d'une heure devant les classes de BTS : à quoi servent les normes, ce qu'est l'ISO 21001, pourquoi le centre s'y réfère. Occasion de présenter la cellule QHSE aux apprenants.",
+   pil:'Responsable qualité', liv:"Support de séance + émargements", iso:'§7.4'},
+  {c:'EVT-03', ax:'EVT', per:'T1', d:'Jeudi 15 octobre 2026', dISO:'2026-10-15', t:"Journée mondiale du lavage des mains",
+   o:"Contrôle et remise à niveau des points d'eau et des sanitaires, affichage des consignes d'hygiène, dotation en savon : une action visible plutôt qu'un discours.",
+   pil:'Référent HSE', liv:"État des points d'eau avant/après + affichage posé", iso:'§8.1'},
+  {c:'EVT-04', ax:'EVT', per:'T1', d:'Jeudi 12 novembre 2026', dISO:'2026-11-12', t:"Journée mondiale de la qualité",
+   o:"Temps fort annuel de la cellule : restitution publique des premiers indicateurs, remise des engagements d'amélioration signés par chaque service, affichage dans le hall.",
+   pil:'Cellule QHSE', liv:"Panneau de restitution + engagements signés", iso:'§9.1 / 7.4'},
+  {c:'EVT-05', ax:'EVT', per:'T2', d:'Mardi 26 janvier 2027', dISO:'2027-01-26', t:"Journée internationale de la douane",
+   o:"Journée métier des filières transit, GCAL et commerce international : intervention d'un professionnel des douanes ou d'un transitaire, étude d'un cas réel de dédouanement.",
+   pil:'Chargé des relations entreprises', liv:"Programme + convention avec l'intervenant + compte rendu", iso:'§4.2 / 8.5'},
+  {c:'EVT-06', ax:'EVT', per:'T2', d:'Mardi 9 février 2027', dISO:'2027-02-09', t:"Journée de la sécurité numérique",
+   o:"Pour les filières bureautique, comptabilité et informatique de gestion : mots de passe, protection des données des apprenants, escroqueries en ligne, sauvegarde des travaux.",
+   pil:'Chefs de département', liv:"Support de sensibilisation + émargements", iso:'§7.5'},
+  {c:'EVT-07', ax:'EVT', per:'T2', d:'Lundi 8 mars 2027', dISO:'2027-03-08', t:"Journée internationale des droits des femmes",
+   o:"Table ronde avec des anciennes du centre installées dans la vie professionnelle, et présentation des données du centre : part des filles par filière, résultats comparés, insertion.",
+   pil:'Conseiller en orientation', liv:"Programme + note statistique par filière", iso:'§4.2'},
+  {c:'EVT-08', ax:'EVT', per:'T2', d:'Lundi 22 mars 2027', dISO:'2027-03-22', t:"Journée mondiale de l'eau",
+   o:"Relevé des fuites et de la consommation du centre, remise en état des points d'eau, sensibilisation courte dans chaque classe.",
+   pil:'Service technique', liv:"Relevé de consommation + travaux réalisés", iso:'§8.1'},
+  {c:'EVT-09', ax:'EVT', per:'T3', d:'Mercredi 28 avril 2027', dISO:'2027-04-28', t:"Journée mondiale de la sécurité et de la santé au travail",
+   o:"Temps fort HSE de l'année : exercice d'évacuation, démonstration des gestes de premiers secours, présentation du document unique et du registre des accidents, rappel des consignes des visites de site.",
+   pil:'Référent HSE', liv:"Programme + rapport d'exercice + émargements", iso:'§8.1 / 7.2'},
+  {c:'EVT-10', ax:'EVT', per:'T3', d:'Samedi 5 juin 2027', dISO:'2027-06-05', t:"Journée mondiale de l'environnement",
+   o:"À mener avec les classes du samedi et en préparation de la journée verte : collecte des déchets électroniques du centre, plantation, affichage des gestes d'économie d'électricité.",
+   pil:'Cellule QHSE', liv:"Bilan de collecte + plan de plantation", iso:'§6.2 / 8.1'},
+  {c:'EVT-11', ax:'EVT', per:'BL', d:'Jeudi 15 juillet 2027', dISO:'2027-07-15', t:"Journée mondiale des compétences des jeunes",
+   o:"Clôture de l'année : présentation publique des résultats aux examens et du taux d'insertion, témoignages de sortants en poste, remise des meilleurs travaux d'apprenants aux entreprises partenaires.",
+   pil:'Chargé de communication', liv:"Programme + dossier de presse + bilan chiffré", iso:'§9.1 / 7.4'}
+];
+
+const INDICATEURS = [
+  // Pilotage
+  {id:'I-PIL-1', ax:'PIL', lib:"Taux de réalisation du plan d'animations", calc:"Activités réalisées ÷ activités programmées à date", cible:85, unite:'%', sens:'haut', freq:'Trimestriel', resp:'Responsable qualité'},
+  {id:'I-PIL-2', ax:'PIL', lib:"Actions correctives clôturées dans les délais", calc:"Fiches clôturées à échéance ÷ fiches échues", cible:80, unite:'%', sens:'haut', freq:'Trimestriel', resp:'Responsable qualité'},
+  {id:'I-PIL-3', ax:'PIL', lib:"Audits internes réalisés", calc:"Audits menés ÷ audits programmés", cible:100, unite:'%', sens:'haut', freq:'Semestriel', resp:'Responsable qualité'},
+  {id:'I-PIL-4', ax:'PIL', lib:"Processus dotés d'une fiche à jour", calc:"Fiches de processus actualisées ÷ processus cartographiés", cible:100, unite:'%', sens:'haut', freq:'Semestriel', resp:'Cellule QHSE'},
+  // Qualité des enseignements
+  {id:'I-QE-1', ax:'QE', lib:"Taux de réussite aux examens", calc:"Admis ÷ présentés, toutes filières", cible:75, unite:'%', sens:'haut', freq:'Annuel', resp:'Chefs de département'},
+  {id:'I-QE-2', ax:'QE', lib:"Taux d'assiduité des apprenants", calc:"Heures suivies ÷ heures dues", cible:90, unite:'%', sens:'haut', freq:'Mensuel', resp:'Surveillant général'},
+  {id:'I-QE-3', ax:'QE', lib:"Couverture des progressions pédagogiques", calc:"Séances réalisées ÷ séances prévues au référentiel", cible:95, unite:'%', sens:'haut', freq:'Trimestriel', resp:'Chefs de département'},
+  {id:'I-QE-4', ax:'QE', lib:"Satisfaction des apprenants sur les enseignements", calc:"Avis favorables ÷ répondants", cible:75, unite:'%', sens:'haut', freq:'Semestriel', resp:'Responsable qualité'},
+  {id:'I-QE-5', ax:'QE', lib:"Heures de formation par formateur", calc:"Heures suivies ÷ effectif de formateurs", cible:21, unite:'h', sens:'haut', freq:'Annuel', resp:'Direction du centre'},
+  {id:'I-QE-6', ax:'QE', lib:"Taux d'insertion des sortants à six mois", calc:"Sortants en emploi ou auto-emploi ÷ sortants joints", cible:50, unite:'%', sens:'haut', freq:'Annuel', resp:'Conseiller en orientation'},
+  {id:'I-QE-7', ax:'QE', lib:"Stages effectivement réalisés", calc:"Stages achevés ÷ stages obligatoires", cible:100, unite:'%', sens:'haut', freq:'Annuel', resp:'Relations entreprises'},
+  // Administration
+  {id:'I-AD-1', ax:'AD', lib:"Délai de délivrance d'un document de scolarité", calc:"Moyenne des délais demande → remise", cible:3, unite:'j', sens:'bas', freq:'Mensuel', resp:'Service scolarité'},
+  {id:'I-AD-2', ax:'AD', lib:"Réclamations traitées sous dix jours", calc:"Réclamations closes ≤ 10 jours ÷ réclamations reçues", cible:90, unite:'%', sens:'haut', freq:'Mensuel', resp:'Responsable qualité'},
+  {id:'I-AD-3', ax:'AD', lib:"Taux d'exécution budgétaire", calc:"Dépenses exécutées ÷ crédits ouverts", cible:90, unite:'%', sens:'haut', freq:'Trimestriel', resp:'Service financier'},
+  {id:'I-AD-4', ax:'AD', lib:"Complétude des dossiers apprenants", calc:"Dossiers complets ÷ dossiers contrôlés", cible:98, unite:'%', sens:'haut', freq:'Trimestriel', resp:'Service scolarité'},
+  {id:'I-AD-5', ax:'AD', lib:"Satisfaction des usagers sur l'accueil", calc:"Avis favorables ÷ répondants", cible:75, unite:'%', sens:'haut', freq:'Annuel', resp:'Secrétaire général'},
+  {id:'I-AD-6', ax:'AD', lib:"Prestataires évalués avant reconduction", calc:"Prestataires évalués ÷ contrats à renouveler", cible:100, unite:'%', sens:'haut', freq:'Annuel', resp:'Service financier'},
+  // HSE
+  {id:'I-HSE-1', ax:'HSE', lib:"Accidents avec arrêt ou soins", calc:"Nombre déclaré sur la période", cible:0, unite:'nb', sens:'zero', freq:'Mensuel', resp:'Référent HSE'},
+  {id:'I-HSE-2', ax:'HSE', lib:"Visites de site encadrées selon la consigne", calc:"Visites avec autorisation, consigne et encadrant ÷ visites organisées", cible:100, unite:'%', sens:'haut', freq:'À chaque visite', resp:'Relations entreprises'},
+  {id:'I-HSE-3', ax:'HSE', lib:"Écarts du diagnostic HSE levés", calc:"Écarts traités ÷ écarts constatés", cible:70, unite:'%', sens:'haut', freq:'Trimestriel', resp:'Référent HSE'},
+  {id:'I-HSE-4', ax:'HSE', lib:"Durée d'évacuation lors des exercices", calc:"Temps du dernier exercice, bâtiment le plus lent", cible:5, unite:'min', sens:'bas', freq:'Semestriel', resp:'Référent HSE'},
+  {id:'I-HSE-5', ax:'HSE', lib:"Conformité des contrôles de propreté", calc:"Points conformes ÷ points contrôlés", cible:90, unite:'%', sens:'haut', freq:'Mensuel', resp:'Cellule QHSE'},
+  {id:'I-HSE-6', ax:'HSE', lib:"Vérifications périodiques à jour", calc:"Installations contrôlées dans les délais ÷ installations soumises", cible:100, unite:'%', sens:'haut', freq:'Semestriel', resp:'Service technique'},
+  {id:'I-HSE-7', ax:'HSE', lib:"Conformité du contrôle des cours du soir", calc:"Points conformes ÷ points contrôlés (éclairage, secours, issues, accès)", cible:100, unite:'%', sens:'haut', freq:'Mensuel', resp:'Surveillant général'},
+  {id:'I-HSE-8', ax:'HSE', lib:"Presque-accidents consignés au registre", calc:"Nombre d'événements sans dommage consignés dans le mois", cible:2, unite:'nb', sens:'haut', freq:'Mensuel', resp:'Référent HSE'},
+  // Visibilité
+  {id:'I-VIS-1', ax:'VIS', lib:"Événements de visibilité organisés", calc:"Nombre d'événements tenus dans l'année", cible:6, unite:'nb', sens:'haut', freq:'Annuel', resp:'Chargé de communication'},
+  {id:'I-VIS-2', ax:'VIS', lib:"Nouvelles conventions de partenariat", calc:"Conventions signées dans l'année", cible:10, unite:'nb', sens:'haut', freq:'Annuel', resp:'Relations entreprises'},
+  {id:'I-VIS-3', ax:'VIS', lib:"Publications sur les supports numériques", calc:"Publications diffusées dans le mois", cible:8, unite:'nb', sens:'haut', freq:'Mensuel', resp:'Chargé de communication'},
+  {id:'I-VIS-4', ax:'VIS', lib:"Visiteurs reçus à la journée portes ouvertes", calc:"Registre d'accueil de la JPO", cible:800, unite:'nb', sens:'haut', freq:'Annuel', resp:'Chargé de communication'},
+  {id:'I-VIS-5', ax:'VIS', lib:"Évolution des candidatures à l'inscription", calc:"(Candidatures N − N-1) ÷ N-1", cible:10, unite:'%', sens:'haut', freq:'Annuel', resp:'Service scolarité'},
+  // Journées mondiales
+  {id:'I-EVT-1', ax:'EVT', lib:"Journées mondiales effectivement animées", calc:"Journées animées ÷ journées retenues au calendrier", cible:80, unite:'%', sens:'haut', freq:'Trimestriel', resp:'Cellule QHSE'},
+  {id:'I-EVT-2', ax:'EVT', lib:"Participation aux temps forts", calc:"Apprenants et personnels émargés ÷ effectif du centre", cible:60, unite:'%', sens:'haut', freq:'À chaque temps fort', resp:'Chargé de communication'}
+];
+
+const NIVEAUX = ['CAP','BT','BTS','BTS APC','BEP','Licence professionnelle','Autre'];
+const REGIMES = ['Jour et soir','Cours du jour','Cours du soir'];
+
+/* Offre de formation 2026-2027 d'après la plaquette du CFPC Delafosse. */
+const FILIERES_BASE = [
+  {id:'o-cap-dactylo', nom:'Dactylographie',                                   niv:'CAP',     reg:'Cours du jour'},
+  {id:'o-cap-aidecpt', nom:'Aide-comptable',                                   niv:'CAP',     reg:'Cours du jour'},
+  {id:'o-bt-bureau',   nom:'Bureautique',                                      niv:'BT',      reg:'Jour et soir'},
+  {id:'o-bt-compta',   nom:'Comptabilité',                                     niv:'BT',      reg:'Jour et soir'},
+  {id:'o-bts-bureau',  nom:'Bureautique',                                      niv:'BTS',     reg:'Jour et soir'},
+  {id:'o-bts-compta',  nom:'Comptabilité',                                     niv:'BTS',     reg:'Jour et soir'},
+  {id:'o-bts-translog',nom:'Transport logistique',                             niv:'BTS',     reg:'Jour et soir'},
+  {id:'o-bts-comint',  nom:'Commerce international',                           niv:'BTS',     reg:'Jour et soir'},
+  {id:'o-bts-age',     nom:'AGE · Administration et gestion des PME/PMI',      niv:'BTS',     reg:'Jour et soir'},
+  {id:'o-apc-transit', nom:'Transit',                                          niv:'BTS APC', reg:'Jour et soir'},
+  {id:'o-apc-gcal',    nom:'GCAL · Chaîne d\'approvisionnement et logistique', niv:'BTS APC', reg:'Jour et soir'}
+];
+
+/* Lignes de la première version (liste provisoire) : conservées seulement si elles portent déjà des données. */
+const ANCIENNE_BASE = {
+  'f-cpta-cap':{nom:'Comptabilité', niv:'CAP'}, 'f-cpta-bt':{nom:'Comptabilité et gestion', niv:'BT'},
+  'f-secr-cap':{nom:'Secrétariat bureautique', niv:'CAP'}, 'f-secr-bt':{nom:'Secrétariat de direction', niv:'BT'},
+  'f-comm-cap':{nom:'Commerce et vente', niv:'CAP'}, 'f-gest-bt':{nom:'Gestion commerciale', niv:'BT'},
+  'f-info-bt':{nom:'Informatique de gestion', niv:'BT'}, 'f-cg-bts':{nom:'Comptabilité et gestion', niv:'BTS'}
+};
+
+const CHAMPS_FIL = ['eff','aban','assi','pres','adm','n1','cible','sortj','emp'];
+
+const ISO_MAP = [
+  {ch:"§4 · Contexte de l'organisme", txt:"Enjeux du centre, attentes des apprenants et des entreprises, périmètre du système et cartographie des processus.", codes:['PIL-02','PIL-03','VIS-03','VIS-06']},
+  {ch:"§5 · Leadership", txt:"Engagement de la direction, politique qualité, rôles et responsabilités de la cellule, priorité donnée aux besoins des apprenants.", codes:['PIL-01','PIL-05']},
+  {ch:"§6 · Planification", txt:"Risques et opportunités, objectifs qualité mesurables déclinés par département, planification des changements.", codes:['PIL-04','PIL-05','HSE-02','HSE-11']},
+  {ch:"§7 · Support", txt:"Ressources et équipements, compétences des formateurs, communication interne et externe, maîtrise des informations documentées.", codes:['QE-04','QE-08','AD-01','AD-02','AD-04','HSE-12','VIS-02','VIS-07','EVT-02','EVT-04']},
+  {ch:"§8 · Activités opérationnelles", txt:"Conception et prestation des services d'éducation, exigences des apprenants, sécurité des locaux et des visites de site, maîtrise des prestataires externes.", codes:['QE-01','QE-05','QE-10','AD-03','AD-08','HSE-01','HSE-03','HSE-04','HSE-06','HSE-09']},
+  {ch:"§9 · Évaluation des performances", txt:"Surveillance et mesure, satisfaction des apprenants et du personnel, audit interne, revue de direction.", codes:['QE-02','QE-09','AD-06','AD-07','HSE-13','PIL-06','PIL-07']},
+  {ch:"§10 · Amélioration", txt:"Non-conformités et actions correctives, amélioration continue des processus et des conditions de travail.", codes:['PIL-08','PIL-09','HSE-13']}
+];
+
+const GOUV = [
+  {h:"Composition de la cellule", p:"Une équipe restreinte mais représentative de tous les métiers du centre.", li:["Un responsable qualité, coordonnateur de la cellule","Un référent hygiène-sécurité-environnement","Un référent pédagogique par département","Un référent administratif et financier","Deux délégués des apprenants","Un représentant du personnel d'appui"]},
+  {h:"Rituels de pilotage", p:"Des rendez-vous courts et réguliers valent mieux que des réunions longues et rares.", li:["Point hebdomadaire de la cellule (45 minutes, relevé de décisions)","Comité de pilotage qualité mensuel avec la direction","Mise à jour mensuelle du panneau d'affichage QHSE","Rapport trimestriel d'avancement à la direction et à la tutelle","Revue de direction en janvier et en juillet"]},
+  {h:"Règles de tenue du tableau", p:"Le tableau ne vaut que par la régularité de sa mise à jour.", li:["Statuts des activités révisés à chaque point hebdomadaire","Indicateurs renseignés selon leur fréquence propre","Toute case rouge appelle une fiche d'action corrective","Les écarts sans pilote désigné ne sont pas des écarts traités"]},
+  {h:"Preuves à constituer", p:"Chaque activité produit un livrable classé : c'est le dossier de preuve du centre.", li:["Un classeur par processus, papier et numérique","Feuilles d'émargement pour toute séance de sensibilisation","Photographies avant/après pour les mises en conformité des locaux","Relevés de décisions signés et diffusés sous 72 heures"]}
+];
+
+/* =========================================================
+   État, persistance
+   ========================================================= */
+const AUJ = new Date().toISOString().slice(0,10);
+const LS_KEY = 'qhse-delafosse-v1';
+const DATE_DEMO = '2027-01-15';
+let demarrage = DEMARRAGE_DEFAUT;
+let demo = false, sauvegarde = null, tampon = {};
+let dbNs = null, lectureSeule = false, modeStockage = 'chargement';
+let etatAct = {}, etatInd = {}, etatFil = {};
+let filtres = {axes:new Set(), per:new Set(), statut:'', texte:''};
+
+function finPeriode(pid){ const b = bornes()[pid]; return b ? b.fin : null; }
+function libellePeriode(pid){ const b = bornes()[pid]; return b ? b.libelle : ''; }
+function statutDe(code){ return (etatAct[code] && etatAct[code].statut) || 'a_lancer'; }
+function dateRef(){ return demo ? DATE_DEMO : AUJ; }
+function avantDemarrage(a){ return !!a.dISO && a.dISO < demarrage; }
+function echeanceDe(a){ return a.dISO || finPeriode(a.per); }
+function enRetard(a){
+  if (avantDemarrage(a)) return false;
+  const f = echeanceDe(a);
+  return !!f && f < dateRef() && statutDe(a.c) !== 'realise' && statutDe(a.c) !== 'reporte';
+}
+function valeurDe(id){
+  const v = etatInd[id] && etatInd[id].valeur;
+  return (v === undefined || v === null || v === '') ? null : Number(v);
+}
+/* ---- Filières : liste, agrégats, valeurs dérivées ---- */
+function nb(x){
+  if (x === undefined || x === null || x === '') return null;
+  const n = Number(x);
+  return Number.isNaN(n) ? null : n;
+}
+function listeFilieres(){
+  const base = FILIERES_BASE
+    .filter(f => !(etatFil[f.id] && etatFil[f.id].supprime))
+    .map(f => Object.assign({}, f, etatFil[f.id] || {}, {id:f.id, base:true}));
+  const idsBase = FILIERES_BASE.map(f=>f.id);
+  const porteDonnees = d => CHAMPS_FIL.some(c => nb(d[c]) !== null);
+  const ajouts = Object.keys(etatFil)
+    .filter(id => idsBase.indexOf(id) === -1 && etatFil[id] && !etatFil[id].supprime)
+    .filter(id => !ANCIENNE_BASE[id] || porteDonnees(etatFil[id]))
+    .sort()
+    .map(id => Object.assign({id:id, nom:'', niv:'CAP', reg:'Jour et soir', base:false},
+                             ANCIENNE_BASE[id] || {}, etatFil[id]));
+  return base.concat(ajouts);
+}
+function tauxReussite(f){
+  const p = nb(f.pres), a = nb(f.adm);
+  return (p && p > 0 && a !== null) ? (a / p * 100) : null;
+}
+function tauxInsertion(f){
+  const s = nb(f.sortj), e = nb(f.emp);
+  return (s && s > 0 && e !== null) ? (e / s * 100) : null;
+}
+function agrFilieres(){
+  let eff=0, aban=0, pres=0, adm=0, sortj=0, emp=0, assiP=0, assiN=0, avecDonnees=0;
+  listeFilieres().forEach(f=>{
+    const e = nb(f.eff) || 0;
+    eff += e; aban += nb(f.aban) || 0;
+    pres += nb(f.pres) || 0; adm += nb(f.adm) || 0;
+    sortj += nb(f.sortj) || 0; emp += nb(f.emp) || 0;
+    const as = nb(f.assi);
+    if (as !== null){ assiP += as * (e || 1); assiN += (e || 1); }
+    if (tauxReussite(f) !== null) avecDonnees++;
+  });
+  return {
+    eff, aban, pres, adm, sortj, emp, avecDonnees,
+    reussite: pres > 0 ? adm / pres * 100 : null,
+    abandon: eff > 0 ? aban / eff * 100 : null,
+    assiduite: assiN > 0 ? assiP / assiN : null,
+    insertion: sortj > 0 ? emp / sortj * 100 : null
+  };
+}
+function valeursDerivees(){
+  const a = agrFilieres();
+  return {'I-QE-1':a.reussite, 'I-QE-2':a.assiduite, 'I-QE-6':a.insertion};
+}
+function valeurEffective(ind){
+  const d = valeursDerivees()[ind.id];
+  if (d !== undefined && d !== null) return Math.round(d * 10) / 10;
+  return valeurDe(ind.id);
+}
+function etatIndicateur(ind){
+  const v = valeurEffective(ind);
+  if (v === null || Number.isNaN(v)) return 'none';
+  if (ind.sens === 'zero') return v === 0 ? 'ok' : (v <= 1 ? 'warn' : 'crit');
+  if (ind.sens === 'bas')  return v <= ind.cible ? 'ok' : (v <= ind.cible * 1.1 ? 'warn' : 'crit');
+  return v >= ind.cible ? 'ok' : (v >= ind.cible * 0.9 ? 'warn' : 'crit');
+}
+
+function lireLocal(){
+  try{
+    const brut = localStorage.getItem(LS_KEY);
+    if(!brut) return;
+    const o = JSON.parse(brut);
+    etatAct = o.act || {}; etatInd = o.ind || {}; etatFil = o.fil || {};
+    if (o.dem) demarrage = o.dem;
+  }catch(e){ /* stockage indisponible : on reste en mémoire */ }
+}
+function ecrireLocal(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify({act:etatAct, ind:etatInd, fil:etatFil, dem:demarrage})); }
+  catch(e){ /* sans effet si le stockage est bloqué */ }
+}
+function majSync(mode){
+  modeStockage = mode;
+  const p = document.getElementById('etatSync');
+  const t = document.getElementById('etatSyncTxt');
+  if (demo){ p.className = 'pill demo'; t.textContent = 'Mode démonstration — rien n’est enregistré'; return; }
+  p.className = 'pill ' + (mode === 'partage' ? 'sync' : (mode === 'local' || mode === 'connexion') ? 'local'
+    : (mode === 'erreur' || mode === 'nonmembre') ? 'err' : '');
+  t.textContent = mode === 'partage' ? 'Saisies partagées avec la cellule'
+    : mode === 'local' ? 'Saisies enregistrées sur ce navigateur seulement'
+    : mode === 'lecture' ? 'Consultation seule'
+    : mode === 'connexion' ? 'Connectez-vous pour voir et saisir le suivi'
+    : mode === 'nonmembre' ? 'Adresse non autorisée — demandez l’accès au responsable qualité'
+    : mode === 'erreur' ? 'Échec d’enregistrement — vérifiez la connexion internet'
+    : 'Chargement…';
+}
+
+async function enregistrerAct(code, statut){
+  const corps = {statut:statut, maj:dateRef()};
+  etatAct[code] = corps; rendre();
+  if (demo) return;
+  if (dbNs && !lectureSeule){
+    try{ await dbNs.doc('suivi/' + code).set(corps); }
+    catch(err){ gererErreurEcriture(err); }
+  } else ecrireLocal();
+}
+async function enregistrerInd(id, valeur){
+  const corps = {valeur:(valeur === '' ? null : Number(valeur)), maj:dateRef()};
+  etatInd[id] = corps; rendre();
+  if (demo) return;
+  if (dbNs && !lectureSeule){
+    try{ await dbNs.doc('indicateurs/' + id).set(corps); }
+    catch(err){ gererErreurEcriture(err); }
+  } else ecrireLocal();
+}
+async function enregistrerDemarrage(v){
+  if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+  demarrage = v; rendre();
+  if (demo) return;
+  if (dbNs && !lectureSeule){
+    try{ await dbNs.doc('config/general').set({demarrage:v, maj:AUJ}); }
+    catch(err){ gererErreurEcriture(err); }
+  } else ecrireLocal();
+}
+async function enregistrerFil(id, patch){
+  const cur = etatFil[id] || {};
+  const corps = Object.assign({}, cur, patch, {maj:dateRef()});
+  etatFil[id] = corps; rendre();
+  if (demo) return;
+  if (dbNs && !lectureSeule){
+    try{ await dbNs.doc('filieres/' + id).set(corps); }
+    catch(err){ gererErreurEcriture(err); }
+  } else ecrireLocal();
+}
+function gererErreurEcriture(err){
+  const code = err && err.code;
+  if (code === 'invalid_argument' || code === 'revoked' || code === 'not_granted'){
+    lectureSeule = true; majSync('lecture'); rendre();
+  } else if (dbNs){ majSync('erreur'); }
+  else { ecrireLocal(); majSync('local'); }
+}
+
+/* =========================================================
+   Rendu
+   ========================================================= */
+function echap(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function rendreKpis(){
+  const total = ACTIVITES.length;
+  const realise = ACTIVITES.filter(a=>statutDe(a.c)==='realise').length;
+  const encours = ACTIVITES.filter(a=>statutDe(a.c)==='en_cours').length;
+  const retard  = ACTIVITES.filter(enRetard).length;
+  const renseignes = INDICATEURS.filter(i=>valeurEffective(i)!==null).length;
+  const pct = Math.round(realise/total*100);
+  const pctInd = Math.round(renseignes/INDICATEURS.length*100);
+  const alertes = INDICATEURS.filter(i=>etatIndicateur(i)==='crit').length;
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi">
+      <div class="lab">Avancement du plan</div>
+      <div class="val num">${pct}<small>%</small></div>
+      <div class="meter"><i style="width:${pct}%"></i></div>
+      <div class="cap">${realise} activités réalisées sur ${total}</div>
+    </div>
+    <div class="kpi">
+      <div class="lab">Activités engagées</div>
+      <div class="val num">${encours}</div>
+      <div class="meter"><i style="width:${Math.round(encours/total*100)}%"></i></div>
+      <div class="cap">en cours de réalisation à ce jour</div>
+    </div>
+    <div class="kpi${retard?' alert':''}">
+      <div class="lab">Activités en retard</div>
+      <div class="val num">${retard}</div>
+      <div class="meter"><i style="width:${Math.round(retard/total*100)}%;background:var(--crit)"></i></div>
+      <div class="cap">échéance de période dépassée</div>
+    </div>
+    <div class="kpi">
+      <div class="lab">Indicateurs renseignés</div>
+      <div class="val num">${renseignes}<small>/${INDICATEURS.length}</small></div>
+      <div class="meter"><i style="width:${pctInd}%"></i></div>
+      <div class="cap">${alertes ? alertes + ' indicateur(s) sous la cible de plus de 10 %' : 'aucune alerte rouge à ce jour'}</div>
+    </div>`;
+}
+
+function rendreCalendrier(){
+  const b = bornes();
+  const inp = document.getElementById('dateDem');
+  if (document.activeElement !== inp) inp.value = demarrage;
+  inp.disabled = lectureSeule;
+  const derniere = b['BL'].fin;
+  const ref = dateRef();
+  document.getElementById('calPrint').textContent = frDate(demarrage);
+  document.getElementById('calHint').textContent =
+    'Toutes les échéances en découlent · fin du cycle le ' + frDate(derniere) +
+    (demo ? ' · démonstration au ' + frDate(DATE_DEMO) : '');
+  document.getElementById('calPer').innerHTML = PERIODES.filter(p=>p.id!=='CO').map(p=>{
+    const x = b[p.id];
+    const encours = ref >= x.debut && ref <= x.fin;
+    return `<span class="${encours?'encours':''}"><b>${echap(p.base)}</b> · ${frDate(x.debut)} – ${frDate(x.fin)}${encours?' · en cours':''}</span>`;
+  }).join('');
+}
+
+function rendreAxes(){
+  document.getElementById('axes').innerHTML = AXES.map(ax=>{
+    const liste = ACTIVITES.filter(a=>a.ax===ax.id);
+    const fait = liste.filter(a=>statutDe(a.c)==='realise').length;
+    const pct = Math.round(fait/liste.length*100);
+    return `<div class="axe-row">
+      <div class="nom">${echap(ax.nom)}<span>${echap(ax.desc)}</span></div>
+      <div class="meter" role="img" aria-label="${pct} % réalisé"><i style="width:${pct}%"></i></div>
+      <div class="cnt num">${fait} / ${liste.length} · ${pct} %</div>
+    </div>`;
+  }).join('');
+}
+
+function rendrePlan(){
+  const sel = ACTIVITES.filter(a=>{
+    if (filtres.axes.size && !filtres.axes.has(a.ax)) return false;
+    if (filtres.per.size && !filtres.per.has(a.per)) return false;
+    if (filtres.statut && statutDe(a.c) !== filtres.statut) return false;
+    if (filtres.texte){
+      const q = filtres.texte.toLowerCase();
+      const foin = (a.c+' '+a.t+' '+a.o+' '+a.pil+' '+a.liv).toLowerCase();
+      if (!foin.includes(q)) return false;
+    }
+    return true;
+  });
+  document.getElementById('planCount').textContent =
+    sel.length + ' activité' + (sel.length>1?'s':'') + ' affichée' + (sel.length>1?'s':'') + ' sur ' + ACTIVITES.length;
+
+  if (!sel.length){
+    document.getElementById('plan').innerHTML = '<div class="empty">Aucune activité ne correspond à ces filtres.</div>';
+    return;
+  }
+  document.getElementById('plan').innerHTML = sel.map(a=>{
+    const st = statutDe(a.c);
+    const retard = enRetard(a);
+    const horsPerimetre = avantDemarrage(a);
+    const maj = etatAct[a.c] && etatAct[a.c].maj;
+    return `<article class="act st-${st}${retard?' late':''}">
+      <div>
+        <div class="head">
+          <span class="code">${a.c}</span>
+          <span class="titre">${echap(a.t)}</span>
+        </div>
+        <p class="obj">${echap(a.o)}</p>
+        <div class="tags">
+          ${a.d ? `<span class="tag date"><b>Date</b> · ${echap(a.d)}</span>` : ''}
+          <span class="tag"><b>Période</b> · ${echap(libellePeriode(a.per))}</span>
+          <span class="tag"><b>Pilote</b> · ${echap(a.pil)}</span>
+          <span class="tag"><b>Livrable</b> · ${echap(a.liv)}</span>
+          <span class="tag iso">ISO 21001 ${echap(a.iso)}</span>
+        </div>
+      </div>
+      <div class="ctrl">
+        ${retard ? '<span class="badge">En retard</span>' : ''}
+        ${horsPerimetre ? '<span class="badge neutre">Date passée avant le démarrage</span>' : ''}
+        <span class="st-print">${STATUTS[st].lib}${retard ? ' — en retard' : ''}</span>
+        <label class="sr" for="st-${a.c}" hidden>Statut de ${a.c}</label>
+        <select id="st-${a.c}" data-code="${a.c}" ${lectureSeule?'disabled':''} aria-label="Statut de l'activité ${a.c}">
+          ${Object.keys(STATUTS).map(k=>`<option value="${k}"${k===st?' selected':''}>${STATUTS[k].lib}</option>`).join('')}
+        </select>
+        <div class="maj">${maj ? 'Mis à jour le ' + maj.split('-').reverse().join('/') : 'Jamais renseigné'}</div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function champInput(f, champ, suffixe){
+  const v = f[champ];
+  return `<input type="number" step="any" min="0" id="fi-${f.id}-${champ}" data-fil="${f.id}" data-champ="${champ}"
+      value="${v===undefined||v===null?'':echap(v)}" ${lectureSeule?'disabled':''}
+      aria-label="${echap(suffixe)} pour ${echap(f.nom || 'filière sans nom')}" placeholder="—">`;
+}
+function rendreFilieres(){
+  const liste = listeFilieres();
+  const a = agrFilieres();
+
+  let n1Pond = null, n1Poids = 0, n1Somme = 0, sousCible = 0;
+  liste.forEach(f=>{
+    const t = tauxReussite(f), n1 = nb(f.n1), c = nb(f.cible), p = nb(f.pres) || 0;
+    if (n1 !== null && p > 0){ n1Somme += n1 * p; n1Poids += p; }
+    if (t !== null && c !== null && t < c) sousCible++;
+  });
+  if (n1Poids > 0) n1Pond = n1Somme / n1Poids;
+  const ecart = (a.reussite !== null && n1Pond !== null) ? a.reussite - n1Pond : null;
+  const f1 = x => x === null ? '—' : (Math.round(x * 10) / 10).toLocaleString('fr-FR');
+
+  document.getElementById('filSum').innerHTML = `
+    <div class="kpi">
+      <div class="lab">Effectif suivi</div>
+      <div class="val num">${a.eff || '—'}</div>
+      <div class="cap">${liste.length} filière${liste.length>1?'s':''} au tableau</div>
+    </div>
+    <div class="kpi">
+      <div class="lab">Réussite du centre</div>
+      <div class="val num">${f1(a.reussite)}${a.reussite!==null?'<small>%</small>':''}</div>
+      <div class="meter"><i style="width:${a.reussite!==null?Math.min(a.reussite,100):0}%"></i></div>
+      <div class="cap">${ecart===null ? 'année précédente non renseignée' : (ecart>=0?'+':'−') + f1(Math.abs(ecart)) + ' point(s) sur l\'année précédente'}</div>
+    </div>
+    <div class="kpi${sousCible?' alert':''}">
+      <div class="lab">Filières sous leur cible</div>
+      <div class="val num">${sousCible}</div>
+      <div class="cap">${a.avecDonnees} filière(s) avec des résultats saisis</div>
+    </div>
+    <div class="kpi">
+      <div class="lab">Abandons en cours d'année</div>
+      <div class="val num">${f1(a.abandon)}${a.abandon!==null?'<small>%</small>':''}</div>
+      <div class="cap">${a.aban || 0} départ(s) sur l'effectif suivi</div>
+    </div>`;
+
+  document.getElementById('filTable').innerHTML = `<table style="min-width:1060px">
+    <thead><tr>
+      <th scope="col">Filière</th><th scope="col">Niveau et régime</th><th scope="col">Effectif</th>
+      <th scope="col">Abandons</th><th scope="col">Assiduité %</th><th scope="col">Présentés</th>
+      <th scope="col">Admis</th><th scope="col">Réussite et état</th><th scope="col">N-1 %</th>
+      <th scope="col">Cible %</th><th scope="col"></th>
+    </tr></thead>
+    <tbody>${liste.map(f=>{
+      const t = tauxReussite(f), c = nb(f.cible), n1 = nb(f.n1);
+      let e = 'none', lib = 'Non renseigné';
+      if (t !== null && c !== null){
+        e = t >= c ? 'ok' : (t >= c * 0.9 ? 'warn' : 'crit');
+        lib = e === 'ok' ? 'Cible atteinte' : (e === 'warn' ? 'À surveiller' : 'Sous la cible');
+      } else if (t !== null){ e = 'none'; lib = 'Cible à fixer'; }
+      const dlt = (t !== null && n1 !== null) ? ((t-n1>=0?'+':'−') + f1(Math.abs(t-n1)) + ' pt vs N-1') : '';
+      return `<tr>
+        <td class="fil-nom"><input type="text" id="fi-${f.id}-nom" data-fil="${f.id}" data-champ="nom"
+             value="${echap(f.nom||'')}" ${lectureSeule?'disabled':''} placeholder="Nom de la filière"
+             aria-label="Nom de la filière"></td>
+        <td class="niv"><div style="display:flex; flex-direction:column; gap:5px">
+          <select id="fi-${f.id}-niv" data-fil="${f.id}" data-champ="niv" ${lectureSeule?'disabled':''} aria-label="Niveau de diplôme">
+            ${NIVEAUX.map(n=>`<option value="${n}"${n===(f.niv||'CAP')?' selected':''}>${n}</option>`).join('')}
+          </select>
+          <select id="fi-${f.id}-reg" data-fil="${f.id}" data-champ="reg" ${lectureSeule?'disabled':''} aria-label="Régime de cours">
+            ${REGIMES.map(r=>`<option value="${r}"${r===(f.reg||'Jour et soir')?' selected':''}>${r}</option>`).join('')}
+          </select>
+        </div></td>
+        <td class="num-in">${champInput(f,'eff','Effectif')}</td>
+        <td class="num-in">${champInput(f,'aban','Abandons')}</td>
+        <td class="num-in">${champInput(f,'assi','Assiduité')}</td>
+        <td class="num-in">${champInput(f,'pres','Présentés')}</td>
+        <td class="num-in">${champInput(f,'adm','Admis')}</td>
+        <td class="cible"><span class="taux" style="color:${t===null?'inherit':(e==='ok'?'var(--good)':e==='warn'?'var(--warn)':e==='crit'?'var(--crit)':'inherit')}">${t===null?'—':f1(t)+' %'}</span><span class="delta">${t===null?'' : lib + (dlt?' · '+dlt:'')}</span></td>
+        <td class="num-in">${champInput(f,'n1','Taux année précédente')}</td>
+        <td class="num-in">${champInput(f,'cible','Cible')}</td>
+        <td><button class="del" data-supp="${f.id}" ${lectureSeule?'disabled':''} title="Retirer la filière" aria-label="Retirer la filière ${echap(f.nom||'')}">×</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+
+  const avecTaux = liste.filter(f=>tauxReussite(f)!==null)
+    .sort((x,y)=>tauxReussite(y)-tauxReussite(x));
+  document.getElementById('filBars').innerHTML = !avecTaux.length ? '' :
+    avecTaux.map(f=>{
+      const t = tauxReussite(f), c = nb(f.cible);
+      return `<div class="bar-row">
+        <div class="nomf">${echap(f.nom||'Sans nom')} <span>· ${echap(f.niv||'')}${f.reg && f.reg!=='Jour et soir' ? ' · ' + echap(f.reg.replace('Cours du ','')) : ''}</span></div>
+        <div class="barwrap" role="img" aria-label="${f1(t)} % de réussite${c!==null?', cible '+c+' %':''}">
+          <i style="width:${Math.min(t,100)}%"></i>${c!==null?`<u style="left:${Math.min(c,100)}%"></u>`:''}
+        </div>
+        <div class="vals">${f1(t)} %${c!==null?' · cible '+c+' %':''}</div>
+      </div>`;
+    }).join('');
+
+  document.getElementById('insTable').innerHTML = `<table style="min-width:640px">
+    <thead><tr>
+      <th scope="col">Filière</th><th scope="col">Niveau et régime</th><th scope="col">Sortants joints</th>
+      <th scope="col">En emploi ou auto-emploi</th><th scope="col">Taux d'insertion</th>
+    </tr></thead>
+    <tbody>${liste.map(f=>{
+      const ti = tauxInsertion(f);
+      return `<tr>
+        <td class="lib">${echap(f.nom||'Sans nom')}</td>
+        <td>${echap(f.niv||'')}<span class="calc">${echap(f.reg||'Jour et soir')}</span></td>
+        <td class="num-in">${champInput(f,'sortj','Sortants joints')}</td>
+        <td class="num-in">${champInput(f,'emp','En emploi')}</td>
+        <td class="cible"><span class="taux">${ti===null?'—':f1(ti)+' %'}</span></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function rendreIndicateurs(){
+  document.getElementById('indicateurs').innerHTML = AXES.map(ax=>{
+    const liste = INDICATEURS.filter(i=>i.ax===ax.id);
+    if (!liste.length) return '';
+    return `<div class="ind-group">
+      <h3>${echap(ax.nom)}</h3>
+      <div class="tbl-scroll"><table>
+        <thead><tr>
+          <th scope="col">Indicateur</th><th scope="col">Cible</th><th scope="col">Relevé</th>
+          <th scope="col">État</th><th scope="col">Fréquence</th><th scope="col">Responsable</th>
+        </tr></thead>
+        <tbody>${liste.map(i=>{
+          const der = valeursDerivees()[i.id];
+          const calcule = (der !== undefined && der !== null);
+          const v = valeurDe(i.id);
+          const e = etatIndicateur(i);
+          const lib = {ok:'Cible atteinte', warn:'À surveiller', crit:'Sous la cible', none:'Non renseigné'}[e];
+          const signe = i.sens==='bas' ? '≤ ' : i.sens==='zero' ? '' : '≥ ';
+          const cellule = calcule
+            ? `<span class="taux">${Math.round(der*10)/10} ${i.unite==='%'?'%':echap(i.unite)}</span><span class="calc">calculé depuis le suivi par filière</span>`
+            : `<input type="number" step="any" id="in-${i.id}" data-ind="${i.id}"
+                 value="${v===null?'':v}" ${lectureSeule?'disabled':''}
+                 aria-label="Relevé pour ${echap(i.lib)}" placeholder="—">`;
+          return `<tr>
+            <td class="lib">${echap(i.lib)}<span>${echap(i.calc)}</span></td>
+            <td class="cible num">${signe}${i.cible} ${i.unite==='%'?'%':echap(i.unite)}</td>
+            <td class="val">${cellule}</td>
+            <td><span class="etat ${e}">${lib}</span></td>
+            <td>${echap(i.freq)}</td>
+            <td>${echap(i.resp)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }).join('');
+}
+
+function rendreStatique(){
+  document.getElementById('iso').innerHTML = ISO_MAP.map(m=>`
+    <div class="card">
+      <h3>${echap(m.ch)}</h3>
+      <p>${echap(m.txt)}</p>
+      <span class="codes">${m.codes.join(' · ')}</span>
+    </div>`).join('');
+  document.getElementById('gouv').innerHTML = GOUV.map(g=>`
+    <div class="card">
+      <h3>${echap(g.h)}</h3>
+      <p>${echap(g.p)}</p>
+      <ul>${g.li.map(x=>`<li>${echap(x)}</li>`).join('')}</ul>
+    </div>`).join('');
+}
+
+function rendre(){
+  const actif = document.activeElement;
+  const idActif = actif && actif.id ? actif.id : null;
+  const caret = (actif && typeof actif.selectionStart === 'number') ? actif.selectionStart : null;
+  rendreKpis(); rendreCalendrier(); rendreAxes(); rendrePlan(); rendreFilieres(); rendreIndicateurs();
+  if (idActif){
+    const el = document.getElementById(idActif);
+    if (el){ el.focus(); if (caret !== null){ try{ el.setSelectionRange(caret, caret); }catch(e){} } }
+  }
+}
+
+/* =========================================================
+   Filtres et interactions
+   ========================================================= */
+function monterFiltres(){
+  const fa = document.getElementById('fAxes');
+  AXES.forEach(ax=>{
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button'; b.textContent = ax.id;
+    b.title = ax.nom; b.setAttribute('aria-pressed','false');
+    b.addEventListener('click', ()=>{
+      if (filtres.axes.has(ax.id)) filtres.axes.delete(ax.id); else filtres.axes.add(ax.id);
+      b.setAttribute('aria-pressed', filtres.axes.has(ax.id) ? 'true':'false');
+      rendrePlan();
+    });
+    fa.appendChild(b);
+  });
+  const fp = document.getElementById('fPer');
+  PERIODES.forEach(p=>{
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button'; b.textContent = p.court;
+    b.title = p.libelle; b.setAttribute('aria-pressed','false');
+    b.addEventListener('click', ()=>{
+      if (filtres.per.has(p.id)) filtres.per.delete(p.id); else filtres.per.add(p.id);
+      b.setAttribute('aria-pressed', filtres.per.has(p.id) ? 'true':'false');
+      rendrePlan();
+    });
+    fp.appendChild(b);
+  });
+  document.getElementById('fStatut').addEventListener('change', e=>{ filtres.statut = e.target.value; rendrePlan(); });
+  document.getElementById('fTexte').addEventListener('input', e=>{ filtres.texte = e.target.value.trim(); rendrePlan(); });
+}
+
+document.addEventListener('change', e=>{
+  if (e.target.id === 'dateDem'){ enregistrerDemarrage(e.target.value); return; }
+  const s = e.target.closest('select[data-code]');
+  if (s){ enregistrerAct(s.dataset.code, s.value); return; }
+  const i = e.target.closest('input[data-ind]');
+  if (i){ enregistrerInd(i.dataset.ind, i.value); return; }
+  const f = e.target.closest('[data-fil]');
+  if (f){
+    const patch = {};
+    patch[f.dataset.champ] = typeof f.value === 'string' ? f.value.trim() : f.value;
+    enregistrerFil(f.dataset.fil, patch);
+  }
+});
+document.addEventListener('click', e=>{
+  const d = e.target.closest('button[data-supp]');
+  if (!d || lectureSeule) return;
+  if (d.dataset.arm === '1'){ enregistrerFil(d.dataset.supp, {supprime:true}); return; }
+  d.dataset.arm = '1'; d.textContent = 'Confirmer ?';
+  setTimeout(()=>{ if (d.isConnected){ d.dataset.arm = ''; d.textContent = '×'; } }, 4000);
+});
+document.getElementById('btnAddFil').addEventListener('click', ()=>{
+  const id = 'f-' + Date.now().toString(36);
+  enregistrerFil(id, {nom:'', niv:'BTS', reg:'Jour et soir'});
+  setTimeout(()=>{ const el = document.getElementById('fi-' + id + '-nom'); if (el) el.focus(); }, 80);
+});
+document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+
+/* ---- Export CSV ---- */
+function construireCsv(){
+  const l = [];
+  const q = s => '"' + String(s === null || s === undefined ? '' : s).replace(/"/g,'""') + '"';
+  l.push(['Type','Code','Axe','Intitulé','Période','Date fixe','Pilote','Livrable','ISO 21001','Statut','Dernière mise à jour'].map(q).join(';'));
+  ACTIVITES.forEach(a=>{
+    l.push([ 'Activité', a.c, a.ax, a.t, libellePeriode(a.per), a.d || '', a.pil, a.liv, a.iso,
+      STATUTS[statutDe(a.c)].lib + (enRetard(a) ? ' (en retard)' : ''),
+      (etatAct[a.c] && etatAct[a.c].maj) || '' ].map(q).join(';'));
+  });
+  l.push('');
+  l.push(['Type','Code','Axe','Indicateur','Mode de calcul','Cible','Unité','Relevé','État','Fréquence','Responsable','Dernière mise à jour'].map(q).join(';'));
+  INDICATEURS.forEach(i=>{
+    const v = valeurEffective(i);
+    const der = valeursDerivees()[i.id];
+    const e = {ok:'Cible atteinte', warn:'À surveiller', crit:'Sous la cible', none:'Non renseigné'}[etatIndicateur(i)];
+    l.push([ 'Indicateur', i.id, i.ax, i.lib, i.calc, i.cible, i.unite,
+      v===null?'':String(v).replace('.',','), e, i.freq, i.resp,
+      (der !== undefined && der !== null) ? 'calculé depuis le suivi par filière'
+        : ((etatInd[i.id] && etatInd[i.id].maj) || '') ].map(q).join(';'));
+  });
+  l.push('');
+  l.push(['Type','Filière','Niveau','Régime','Effectif','Abandons','Assiduité %','Présentés','Admis','Réussite %','Année N-1 %','Cible %','Sortants joints','En emploi','Insertion %','Dernière mise à jour'].map(q).join(';'));
+  const dec = x => x === null ? '' : String(Math.round(x*10)/10).replace('.',',');
+  listeFilieres().forEach(f=>{
+    l.push([ 'Filière', f.nom || '', f.niv || '', f.reg || 'Jour et soir', f.eff || '', f.aban || '', f.assi || '',
+      f.pres || '', f.adm || '', dec(tauxReussite(f)), f.n1 || '', f.cible || '',
+      f.sortj || '', f.emp || '', dec(tauxInsertion(f)), f.maj || '' ].map(q).join(';'));
+  });
+  const ag = agrFilieres();
+  l.push([ 'Total centre', '', '', '', ag.eff, ag.aban, dec(ag.assiduite), ag.pres, ag.adm,
+    dec(ag.reussite), '', '', ag.sortj, ag.emp, dec(ag.insertion), AUJ ].map(q).join(';'));
+  return '﻿' + l.join('\r\n');
+}
+
+/* =========================================================
+   Mode démonstration : chiffres fictifs, aucune écriture
+   ========================================================= */
+function appliquer(cle, n){
+  if (cle === 'act') etatAct = Object.assign({}, etatAct, n);
+  else if (cle === 'ind') etatInd = Object.assign({}, etatInd, n);
+  else etatFil = Object.assign({}, etatFil, n);
+}
+function graine(s){ let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 9973; return h; }
+
+function donneesDemo(){
+  const act = {}, ind = {}, fil = {};
+  ACTIVITES.forEach(a=>{
+    const g = graine(a.c) % 100;
+    let st = 'a_lancer';
+    if (a.per === 'P0') st = 'realise';
+    else if (a.per === 'T1') st = g < 62 ? 'realise' : (g < 84 ? 'en_cours' : (g < 92 ? 'reporte' : 'a_lancer'));
+    else if (a.per === 'T2') st = g < 34 ? 'en_cours' : 'a_lancer';
+    else if (a.per === 'CO') st = g < 22 ? 'realise' : (g < 78 ? 'en_cours' : 'a_lancer');
+    const maj = a.per === 'P0' ? ajoutJours(demarrage, 20) : (a.per === 'T1' ? ajoutJours(demarrage, 68) : ajoutJours(DATE_DEMO, -3));
+    act[a.c] = {statut:st, maj:(st === 'a_lancer' ? '' : maj)};
+  });
+  // deux écarts volontaires, pour que la démonstration montre aussi du rouge
+  act['PIL-02'] = {statut:'en_cours', maj:ajoutJours(demarrage, 30)};
+  act['EVT-04'] = {statut:'en_cours', maj:ajoutJours(demarrage, 30)};
+  INDICATEURS.forEach(i=>{
+    if (i.id === 'I-QE-1' || i.id === 'I-QE-2' || i.id === 'I-QE-6') return; // calculés depuis les filières
+    const g = graine(i.id) % 100;
+    let v;
+    if (i.sens === 'zero') v = g < 78 ? 0 : 1;
+    else if (i.sens === 'bas') v = g < 62 ? Math.max(0, i.cible * 0.8) : (g < 86 ? i.cible * 1.05 : i.cible * 1.25);
+    else v = g < 62 ? i.cible * 1.03 : (g < 86 ? i.cible * 0.95 : i.cible * 0.82);
+    v = i.unite === 'nb' ? Math.round(v) : Math.round(v * 10) / 10;
+    ind[i.id] = {valeur:v, maj:'2027-01-10'};
+  });
+  const effParNiveau = {'CAP':24, 'BT':46, 'BTS':38, 'BTS APC':29};
+  FILIERES_BASE.forEach(f=>{
+    const g = graine(f.id);
+    const eff = (effParNiveau[f.niv] || 30) + (g % 13) - 6;
+    const aban = 1 + (g % 3);
+    const pres = eff - aban;
+    const tx = 0.70 + ((g % 24) / 100);
+    const adm = Math.round(pres * tx);
+    const taux = adm / pres * 100;
+    fil[f.id] = {
+      eff:eff, aban:aban, assi:82 + (g % 13), pres:pres, adm:adm,
+      n1:Math.round((taux + ((g % 11) - 5)) * 10) / 10,
+      cible:f.niv === 'CAP' ? 75 : 80,
+      sortj:Math.round(pres * 0.7), emp:Math.round(pres * 0.7 * (0.38 + (g % 27) / 100)),
+      maj:'2027-01-08'
+    };
+  });
+  return {act:act, ind:ind, fil:fil};
+}
+
+function activerDemo(){
+  if (demo) return;
+  sauvegarde = {act:etatAct, ind:etatInd, fil:etatFil, dem:demarrage};
+  const d = donneesDemo();
+  demo = true; tampon = {};
+  etatAct = d.act; etatInd = d.ind; etatFil = d.fil;
+  document.documentElement.setAttribute('data-demo', '1');
+  document.getElementById('demoBar').hidden = false;
+  document.getElementById('btnDemo').hidden = true;
+  majSync(modeStockage); rendre();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function quitterDemo(){
+  if (!demo) return;
+  demo = false;
+  etatAct = sauvegarde.act; etatInd = sauvegarde.ind; etatFil = sauvegarde.fil;
+  demarrage = sauvegarde.dem || demarrage;
+  if (tampon.dem) demarrage = tampon.dem;
+  if (tampon.act) appliquer('act', tampon.act);
+  if (tampon.ind) appliquer('ind', tampon.ind);
+  if (tampon.fil) appliquer('fil', tampon.fil);
+  tampon = {}; sauvegarde = null;
+  document.documentElement.removeAttribute('data-demo');
+  document.getElementById('demoBar').hidden = true;
+  document.getElementById('btnDemo').hidden = false;
+  majSync(modeStockage); rendre();
+}
+document.getElementById('btnDemo').addEventListener('click', activerDemo);
+document.getElementById('btnDemoOff').addEventListener('click', quitterDemo);
+
+/* =========================================================
+   Démarrage
+   ========================================================= */
+/* ---- Export CSV natif (téléchargement direct) ---- */
+function brancherCsv(){
+  const b = document.getElementById('btnCsv');
+  b.addEventListener('click', ()=>{
+    const blob = new Blob([construireCsv()], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'suivi-qhse-delafosse-' + (demo ? 'DEMONSTRATION-' : '') + dateRef() + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  });
+}
+
+/* ---- Base partagée Supabase ----
+   Une seule table « qhse_docs » (collection, doc_id, data) reprend
+   les collections du tableau : suivi, indicateurs, filieres, config. */
+let sb = null, utilisateur = null, canal = null, sessionId = null;
+const COLL_CLE = {suivi:'act', indicateurs:'ind', filieres:'fil'};
+
+function supabaseConfigure(){
+  const c = window.QHSE_CONFIG || {};
+  return !!(c.supabaseUrl && c.supabaseAnonKey && window.supabase && window.supabase.createClient);
+}
+function adaptateurSupabase(){
+  return {
+    doc(chemin){
+      const [collection, doc_id] = chemin.split('/');
+      return {
+        async set(data){
+          const {error} = await sb.from('qhse_docs')
+            .upsert({collection:collection, doc_id:doc_id, data:data}, {onConflict:'collection,doc_id'});
+          if (error){
+            const e = new Error(error.message);
+            e.code = (error.code === '42501' || /row-level security|permission/i.test(error.message)) ? 'not_granted' : 'ecriture';
+            throw e;
+          }
+        }
+      };
+    }
+  };
+}
+function recevoir(r){
+  if (!r || !r.collection) return;
+  if (r.collection === 'config'){
+    if (r.doc_id !== 'general' || !r.data || !r.data.demarrage) return;
+    if (demo){ tampon.dem = r.data.demarrage; return; }
+    demarrage = r.data.demarrage; rendre(); return;
+  }
+  const cle = COLL_CLE[r.collection];
+  if (!cle) return;
+  const n = {}; n[r.doc_id] = r.data;
+  if (demo){ tampon[cle] = Object.assign({}, tampon[cle] || {}, n); return; }
+  appliquer(cle, n); rendre();
+}
+function viderEtat(){
+  if (demo){ sauvegarde = {act:{}, ind:{}, fil:{}, dem:DEMARRAGE_DEFAUT}; tampon = {}; }
+  else { etatAct = {}; etatInd = {}; etatFil = {}; demarrage = DEMARRAGE_DEFAUT; }
+}
+function afficherAuth(connecte, texte){
+  document.getElementById('authForm').hidden = connecte;
+  document.getElementById('btnLogout').hidden = !connecte;
+  const u = document.getElementById('authUser');
+  u.hidden = !texte; u.textContent = texte || '';
+}
+
+async function ouvrirSession(session){
+  const id = session && session.user ? session.user.id : null;
+  if (id === sessionId) return;
+  sessionId = id;
+  if (canal){ try{ sb.removeChannel(canal); }catch(e){} canal = null; }
+  dbNs = null; lectureSeule = true; viderEtat();
+
+  if (!session){
+    utilisateur = null;
+    afficherAuth(false, '');
+    majSync('connexion'); rendre(); return;
+  }
+  utilisateur = session.user;
+  afficherAuth(true, utilisateur.email);
+  majSync('chargement');
+
+  const {data:role, error:errRole} = await sb.rpc('mon_role');
+  if (errRole || !role){ majSync('nonmembre'); rendre(); return; }
+
+  const {data:lignes, error} = await sb.from('qhse_docs').select('collection,doc_id,data');
+  if (error){ majSync('erreur'); rendre(); return; }
+  lignes.forEach(recevoir);
+
+  dbNs = adaptateurSupabase();
+  lectureSeule = (role !== 'editeur');
+  afficherAuth(true, utilisateur.email + (lectureSeule ? ' · lecteur' : ' · éditeur'));
+  majSync(lectureSeule ? 'lecture' : 'partage');
+  rendre();
+
+  canal = sb.channel('qhse-docs')
+    .on('postgres_changes', {event:'*', schema:'public', table:'qhse_docs'}, p=>{ if (p.new) recevoir(p.new); })
+    .subscribe();
+}
+
+function brancherSupabase(){
+  const c = window.QHSE_CONFIG;
+  sb = window.supabase.createClient(c.supabaseUrl, c.supabaseAnonKey);
+  const form = document.getElementById('authForm');
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const email = document.getElementById('authEmail').value.trim();
+    const btn = document.getElementById('authBtn');
+    if (!email) return;
+    btn.disabled = true; btn.textContent = 'Envoi…';
+    const {error} = await sb.auth.signInWithOtp({
+      email:email,
+      options:{emailRedirectTo: location.origin + location.pathname}
+    });
+    btn.disabled = false; btn.textContent = 'Recevoir le lien de connexion';
+    afficherAuth(false, error
+      ? 'Envoi impossible : ' + (/rate|limit/i.test(error.message) ? 'trop de demandes, réessayez plus tard' : error.message)
+      : 'Lien envoyé à ' + email + ' — ouvrez-le sur cet appareil.');
+  });
+  document.getElementById('btnLogout').addEventListener('click', ()=>{ sb.auth.signOut(); });
+  // Le rappel ne doit pas attendre d'autres appels Supabase : on diffère le traitement.
+  sb.auth.onAuthStateChange((evt, session)=>{ setTimeout(()=>ouvrirSession(session), 0); });
+}
+
+function demarrer(){
+  monterFiltres();
+  rendreStatique();
+  brancherCsv();
+  if (supabaseConfigure()){
+    lectureSeule = true;
+    afficherAuth(false, '');
+    majSync('connexion'); rendre();
+    brancherSupabase();
+  } else {
+    lireLocal();
+    majSync('local'); rendre();
+  }
+}
+
+demarrer();
+</script>
+
+</body>
+</html>
